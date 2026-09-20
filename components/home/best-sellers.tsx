@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ProductCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -150,9 +151,11 @@ export const BestSellers: React.FC = () => {
 
         {/* Bottom CTA */}
         <div className="text-center pt-4">
-          <Button variant="secondary" className="px-8 h-[44px]">
-            View All Best Sellers
-          </Button>
+          <Link href="/shop">
+            <Button variant="secondary" className="px-8 h-[44px]">
+              View All Best Sellers
+            </Button>
+          </Link>
         </div>
       </div>
     </section>

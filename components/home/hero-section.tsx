@@ -24,15 +24,17 @@ export const HeroSection: React.FC = () => {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Link href="/shop">
-              <Button variant="primary" className="h-[48px] px-8 text-[14px]">
-                Shop Now &rarr;
-              </Button>
+            <Link
+              href="/shop"
+              className="inline-flex items-center justify-center font-medium transition-all duration-150 text-[14px] leading-tight select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#232323] h-[48px] px-8 bg-[#232323] text-white rounded-[10px] hover:bg-[#454545] active:bg-[#000000] shadow-sm cursor-pointer"
+            >
+              Shop Now &rarr;
             </Link>
-            <Link href="/brands">
-              <Button variant="secondary" className="h-[48px] px-8 text-[14px]">
-                Explore Brands
-              </Button>
+            <Link
+              href="/brands"
+              className="inline-flex items-center justify-center font-medium transition-all duration-150 text-[14px] leading-tight select-none focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#232323] h-[48px] px-8 bg-white text-[#232323] border border-[#E0E0E0] rounded-[10px] hover:bg-[#F8F8F8] hover:border-[#232323] shadow-xs cursor-pointer"
+            >
+              Explore Brands
             </Link>
           </div>
 

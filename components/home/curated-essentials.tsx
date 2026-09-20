@@ -62,19 +62,21 @@ export const CuratedEssentials: React.FC = () => {
               className="bg-[#F8F8F8] border border-[#E0E0E0] rounded-[18px] p-5 flex flex-col justify-between group hover:border-[#232323] hover:bg-white transition-all shadow-2xs hover:shadow-lg"
             >
               <div className="space-y-4">
-                <div className="w-full h-[180px] rounded-[12px] overflow-hidden bg-[#EFEFEF]">
+                <Link href={cat.href} className="block w-full h-[180px] rounded-[12px] overflow-hidden bg-[#EFEFEF]">
                   <img
                     src={cat.image}
                     alt={cat.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                </div>
+                </Link>
                 <div className="space-y-1">
                   <span className="text-[10px] font-bold text-[#A0A0A0] uppercase tracking-wider">
                     {cat.label}
                   </span>
                   <h3 className="font-heebo text-[20px] font-bold text-[#232323]">
-                    {cat.title}
+                    <Link href={cat.href} className="hover:underline">
+                      {cat.title}
+                    </Link>
                   </h3>
                   <p className="text-[13px] text-[#676767] leading-normal">
                     {cat.desc}

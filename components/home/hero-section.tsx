@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export const HeroSection: React.FC = () => {
@@ -23,12 +24,16 @@ export const HeroSection: React.FC = () => {
           </p>
 
           <div className="flex flex-wrap items-center gap-4 pt-2">
-            <Button variant="primary" className="h-[48px] px-8 text-[14px]">
-              Shop Now &rarr;
-            </Button>
-            <Button variant="secondary" className="h-[48px] px-8 text-[14px]">
-              Explore Brands
-            </Button>
+            <Link href="/shop">
+              <Button variant="primary" className="h-[48px] px-8 text-[14px]">
+                Shop Now &rarr;
+              </Button>
+            </Link>
+            <Link href="/brands">
+              <Button variant="secondary" className="h-[48px] px-8 text-[14px]">
+                Explore Brands
+              </Button>
+            </Link>
           </div>
 
           {/* Stats Bar */}

@@ -10,7 +10,7 @@ export interface SizeSelectorProps {
 }
 
 export const SizeSelector: React.FC<SizeSelectorProps> = ({
-  sizes = ["S", "M", "L", "XL", "XXL", "..."],
+  sizes = ["S", "M", "L", "XL", "XXL"],
   selectedSize: externalSelected,
   onChange,
   className = "",
@@ -19,7 +19,6 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
   const currentSelected = externalSelected ?? internalSelected;
 
   const handleSelect = (size: string) => {
-    if (size === "...") return;
     setInternalSelected(size);
     onChange?.(size);
   };
@@ -32,8 +31,10 @@ export const SizeSelector: React.FC<SizeSelectorProps> = ({
           <button
             key={size}
             type="button"
+            aria-pressed={isSelected}
+            aria-label={`Select size ${size}`}
             onClick={() => handleSelect(size)}
-            className={`min-w-[42px] h-[42px] px-3 rounded-[8px] text-[14px] font-semibold transition-all flex items-center justify-center select-none ${
+            className={`min-w-[42px] h-[42px] px-3 rounded-[8px] text-[14px] font-semibold transition-all flex items-center justify-center select-none cursor-pointer ${
               isSelected
                 ? "bg-[#232323] text-white shadow-xs"
                 : "bg-white text-[#232323] border border-[#E0E0E0] hover:border-[#232323]"

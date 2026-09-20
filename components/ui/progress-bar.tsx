@@ -42,6 +42,7 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({
           return (
             <span
               key={step.id}
+              aria-current={isCurrent ? "step" : undefined}
               className={isCurrent ? "font-bold text-[#232323]" : ""}
             >
               {step.label}

@@ -1,12 +1,14 @@
 import React from "react";
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "aria-label"> {
+  "aria-label": string;
   icon?: React.ReactNode;
   shortcut?: string;
 }
 
 export const Input: React.FC<InputProps> = ({
+  "aria-label": ariaLabel,
   icon,
   shortcut,
   className = "",
@@ -22,6 +24,7 @@ export const Input: React.FC<InputProps> = ({
       )}
       <input
         type="text"
+        aria-label={ariaLabel}
         placeholder={placeholder}
         className={`w-full h-[46px] bg-white border border-[#E0E0E0] rounded-[12px] text-[14px] text-[#232323] placeholder-[#A0A0A0] transition-colors focus:outline-none focus:border-[#232323] focus:ring-1 focus:ring-[#232323] ${
           icon ? "pl-[44px]" : "pl-[15px]"
@@ -36,3 +39,4 @@ export const Input: React.FC<InputProps> = ({
     </div>
   );
 };
+

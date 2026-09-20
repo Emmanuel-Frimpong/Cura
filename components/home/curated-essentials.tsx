@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export const CuratedEssentials: React.FC = () => {
   const categories = [
@@ -7,6 +8,7 @@ export const CuratedEssentials: React.FC = () => {
       title: "SNEAKERS",
       desc: "Icons & authentic kicks for everyday style, field, and street performance.",
       cta: "EXPLORE FOOTWEAR",
+      href: "/shop?category=sneakers",
       image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
     },
     {
@@ -14,6 +16,7 @@ export const CuratedEssentials: React.FC = () => {
       title: "SHIRTS & TEES",
       desc: "Clean luxury wardrobe essentials, linen shirts, graphic tees, and sleek tailoring.",
       cta: "EXPLORE SHIRTS",
+      href: "/shop?category=shirts-apparel",
       image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939419/cura/media/jlcvwvmt6uwyzp9ydnah.jpg",
     },
     {
@@ -21,6 +24,7 @@ export const CuratedEssentials: React.FC = () => {
       title: "WRIST WATCHES",
       desc: "Automatic chronographs, minimal everyday timepieces, and rare luxury wristwatches.",
       cta: "EXPLORE WATCHES",
+      href: "/shop?category=wrist-watches",
       image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
     },
     {
@@ -28,6 +32,7 @@ export const CuratedEssentials: React.FC = () => {
       title: "SPECTACLES",
       desc: "Acetate optical frames and premium solar sunglasses engineered with maximum UV clarity.",
       cta: "EXPLORE SPECTACLES",
+      href: "/shop?category=spectacles-eyewear",
       image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
     },
   ];
@@ -78,12 +83,12 @@ export const CuratedEssentials: React.FC = () => {
               </div>
 
               <div className="pt-6 border-t border-[#E0E0E0]/60 mt-4">
-                <a
-                  href="#"
+                <Link
+                  href={cat.href}
                   className="text-[12px] font-bold text-[#232323] hover:underline uppercase tracking-wider flex items-center gap-1.5"
                 >
                   {cat.cta} &rarr;
-                </a>
+                </Link>
               </div>
             </div>
           ))}

@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
 export const PromoBanner: React.FC = () => {
@@ -23,12 +24,14 @@ export const PromoBanner: React.FC = () => {
               selected signature sneakers, linen shirts, and optical frames.
             </p>
             <div className="pt-2">
-              <Button
-                variant="secondary"
-                className="bg-white text-[#121212] border-none font-bold hover:bg-[#F8F8F8] h-[46px] px-8"
-              >
-                Shop the Sale &rarr;
-              </Button>
+              <Link href="/sale">
+                <Button
+                  variant="secondary"
+                  className="bg-white text-[#121212] border-none font-bold hover:bg-[#F8F8F8] h-[46px] px-8"
+                >
+                  Shop the Sale &rarr;
+                </Button>
+              </Link>
             </div>
           </div>
 

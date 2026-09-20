@@ -19,7 +19,7 @@ export const CommunityReviews: React.FC = () => {
       name: "David K.",
       rating: 5,
       comment:
-        "Fast 2-day delivery for a pair of sunglasses away. These acetate frames feel durable and optical clarity is top tier. 10/10 shopping experience!",
+        "Fast 2-day delivery for a pair of sunglasses. These acetate frames feel durable and optical clarity is top tier. 10/10 shopping experience!",
     },
   ];
 

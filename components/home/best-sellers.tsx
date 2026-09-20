@@ -14,6 +14,7 @@ export const BestSellers: React.FC = () => {
     {
       id: 1,
       category: "NIKE",
+      type: "Sneakers",
       title: "Air Force 1 '07",
       variant: "Men's Shoes",
       price: "$115.00",
@@ -24,6 +25,7 @@ export const BestSellers: React.FC = () => {
     {
       id: 2,
       category: "ADIDAS",
+      type: "Sneakers",
       title: "Originals Superstar",
       variant: "Unisex Shoes",
       price: "$100.00",
@@ -33,6 +35,7 @@ export const BestSellers: React.FC = () => {
     {
       id: 3,
       category: "JORDAN",
+      type: "Sneakers",
       title: "Air Jordan 4 Retro",
       variant: "Men's Footwear",
       price: "$210.00",
@@ -43,6 +46,7 @@ export const BestSellers: React.FC = () => {
     {
       id: 4,
       category: "NEW BALANCE",
+      type: "Sneakers",
       title: "New Balance 550",
       variant: "Athletic Running",
       price: "$120.00",
@@ -52,13 +56,39 @@ export const BestSellers: React.FC = () => {
     {
       id: 5,
       category: "CURA",
+      type: "Shirts",
       title: "Men's Linen Shirt",
       variant: "White/Rustic Classic",
       price: "$75.00",
       rating: "4.9 (62)",
       image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
     },
+    {
+      id: 6,
+      category: "HOROLOGY",
+      type: "Watches",
+      title: "Precision Automatic Watch",
+      variant: "Silver/Steel",
+      price: "$350.00",
+      rating: "4.9 (48)",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
+    },
+    {
+      id: 7,
+      category: "OPTICS",
+      type: "Eyewear",
+      title: "Acetate Solar Frames",
+      variant: "Classic Tortoise",
+      price: "$145.00",
+      rating: "4.8 (39)",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
+    },
   ];
+
+  const filteredProducts =
+    activeTab === "All Products"
+      ? products
+      : products.filter((p) => p.type === activeTab);
 
   const toggleWishlist = (id: number) => {
     setWishlistedIds((prev) =>
@@ -99,7 +129,7 @@ export const BestSellers: React.FC = () => {
 
         {/* Product Cards Row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {products.map((p) => (
+          {filteredProducts.map((p) => (
             <div key={p.id} className="relative">
               {p.saleBadge && (
                 <div className="absolute top-3 left-3 z-10 bg-[#D84315] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-[4px] uppercase">

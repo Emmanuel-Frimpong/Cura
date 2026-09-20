@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 
 export const StyleSelector: React.FC = () => {
   const styles = [
@@ -23,18 +24,19 @@ export const StyleSelector: React.FC = () => {
               Explore current footwear trends tailored to your preference.
             </p>
           </div>
-          <a
-            href="#"
+          <Link
+            href="/shop"
             className="text-[12px] font-bold text-[#232323] hover:underline uppercase tracking-wider"
           >
             ALL STYLES &rarr;
-          </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
           {styles.map((style, idx) => (
-            <div
+            <Link
               key={idx}
+              href={`/shop?style=${encodeURIComponent(style.title.toLowerCase())}`}
               className="bg-white border border-[#E0E0E0] rounded-[14px] p-3 flex flex-col items-center text-center group cursor-pointer hover:border-[#232323] transition-all shadow-2xs hover:shadow-md"
             >
               <div className="w-full h-[90px] rounded-[8px] bg-[#F4F4F4] overflow-hidden mb-2 flex items-center justify-center">
@@ -47,10 +49,11 @@ export const StyleSelector: React.FC = () => {
               <span className="text-[13px] font-bold text-[#232323]">
                 {style.title}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       </div>
     </section>
   );
 };
+

@@ -6,11 +6,33 @@ import { Button } from "@/components/ui/button";
 export const Newsletter: React.FC = () => {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setSubscribed(true);
+    if (!email) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (res.ok) {
+        setSubscribed(true);
+      } else {
+        const data = await res.json();
+        setError(data.error || "Subscription failed. Please try again.");
+      }
+    } catch {
+      setError("Network error. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,22 +62,34 @@ export const Newsletter: React.FC = () => {
               onSubmit={handleSubmit}
               className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
             >
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email address..."
-                className="w-full h-[46px] bg-white border border-[#E0E0E0] rounded-[10px] px-4 text-[13px] text-[#232323] placeholder-[#A0A0A0] focus:outline-none focus:border-[#232323]"
-              />
+              <div className="w-full flex-1">
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  required
+                  aria-label="Email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email address..."
+                  className="w-full h-[46px] bg-white border border-[#E0E0E0] rounded-[10px] px-4 text-[13px] text-[#232323] placeholder-[#A0A0A0] focus:outline-none focus:border-[#232323]"
+                />
+              </div>
               <Button
                 type="submit"
                 variant="primary"
+                disabled={loading}
                 className="h-[46px] px-7 uppercase font-bold shrink-0 w-full sm:w-auto"
               >
-                SUBSCRIBE
+                {loading ? "SUBSCRIBING..." : "SUBSCRIBE"}
               </Button>
             </form>
+          )}
+
+          {error && (
+            <p className="text-[12px] text-red-600 font-medium">{error}</p>
           )}
 
           <p className="text-[11px] text-[#A0A0A0] font-mono">
@@ -66,3 +100,4 @@ export const Newsletter: React.FC = () => {
     </section>
   );
 };
+

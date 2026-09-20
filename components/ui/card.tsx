@@ -1,4 +1,7 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
 import { Button } from "./button";
 
 export interface ProductCardProps {
@@ -40,6 +43,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
+              aria-hidden="true"
             >
               <path
                 strokeLinecap="round"
@@ -54,6 +58,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <button
           type="button"
           onClick={onWishlistToggle}
+          aria-label={isWishlisted ? `Remove ${title} from wishlist` : `Add ${title} to wishlist`}
+          aria-pressed={isWishlisted}
           className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#232323] hover:scale-105 transition-transform border border-[#E0E0E0]/60 shadow-xs cursor-pointer"
         >
           <svg
@@ -61,6 +67,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               isWishlisted ? "fill-[#232323]" : "fill-none stroke-current stroke-2"
             }`}
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
           </svg>
@@ -92,6 +99,8 @@ export interface CollectionCardProps {
   title: string;
   buttonText?: string;
   imageUrl?: string;
+  href?: string;
+  onClick?: () => void;
   className?: string;
 }
 
@@ -99,6 +108,8 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
   title,
   buttonText = "Explore Watches",
   imageUrl,
+  href = "/shop?category=watches",
+  onClick,
   className = "",
 }) => {
   return (
@@ -116,12 +127,24 @@ export const CollectionCard: React.FC<CollectionCardProps> = ({
         <h3 className="font-heebo text-[28px] font-bold leading-tight mb-4">
           {title}
         </h3>
-        <Button
-          variant="secondary"
-          className="text-[13px] h-[38px] bg-[#F5E5D8] border-none text-[#232323] font-semibold hover:bg-[#E0C5B0]"
-        >
-          {buttonText}
-        </Button>
+        {onClick ? (
+          <Button
+            variant="secondary"
+            onClick={onClick}
+            className="text-[13px] h-[38px] bg-[#F5E5D8] border-none text-[#232323] font-semibold hover:bg-[#E0C5B0]"
+          >
+            {buttonText}
+          </Button>
+        ) : (
+          <Link href={href}>
+            <Button
+              variant="secondary"
+              className="text-[13px] h-[38px] bg-[#F5E5D8] border-none text-[#232323] font-semibold hover:bg-[#E0C5B0]"
+            >
+              {buttonText}
+            </Button>
+          </Link>
+        )}
       </div>
     </div>
   );
@@ -132,6 +155,7 @@ export interface ReviewCardProps {
   rating?: number;
   comment: string;
   avatarUrl?: string;
+  onMore?: () => void;
   className?: string;
 }
 
@@ -140,8 +164,19 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
   rating = 5,
   comment,
   avatarUrl,
+  onMore,
   className = "",
 }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const handleMoreClick = () => {
+    if (onMore) {
+      onMore();
+    } else {
+      setIsExpanded(!isExpanded);
+    }
+  };
+
   return (
     <div
       className={`bg-white rounded-[16px] border border-[#E0E0E0] p-5 shadow-xs flex flex-col gap-3 ${className}`}
@@ -159,6 +194,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
               className="w-6 h-6"
               fill="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
             </svg>
@@ -173,6 +209,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
                   i < rating ? "fill-[#232323]" : "fill-[#E0E0E0]"
                 }`}
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
               </svg>
@@ -183,12 +220,18 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({
           </p>
         </div>
       </div>
-      <p className="text-[13px] text-[#676767] leading-relaxed line-clamp-3">
+      <p className={`text-[13px] text-[#676767] leading-relaxed ${isExpanded ? "" : "line-clamp-3"}`}>
         {comment}
       </p>
-      <button className="text-[12px] font-semibold text-[#232323] underline self-start hover:text-[#676767]">
-        More
+      <button
+        type="button"
+        onClick={handleMoreClick}
+        aria-expanded={isExpanded}
+        className="text-[12px] font-semibold text-[#232323] underline self-start hover:text-[#676767] cursor-pointer"
+      >
+        {isExpanded ? "Less" : "More"}
       </button>
     </div>
   );
 };
+

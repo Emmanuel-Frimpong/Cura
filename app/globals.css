@@ -1,26 +1,55 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-heebo: var(--font-heebo), sans-serif;
+  --font-oswald: var(--font-oswald), sans-serif;
+  --font-inter: var(--font-inter), sans-serif;
+  --font-sans: var(--font-inter), sans-serif;
+
+  /* Primary Colors */
+  --color-cura-primary-500: #232323;
+  --color-cura-primary-400: #454545;
+  --color-cura-primary-300: #F0B47A;
+  --color-cura-primary-200: #FEE5A0;
+
+  /* Secondary Colors */
+  --color-cura-secondary-500: #D4B7A0;
+  --color-cura-secondary-400: #E0C5B0;
+  --color-cura-secondary-300: #F5E5D8;
+  --color-cura-secondary-200: #FDF8F3;
+
+  /* Neutral Colors */
+  --color-cura-neutral-900: #000000;
+  --color-cura-neutral-800: #232323;
+  --color-cura-neutral-700: #454545;
+  --color-cura-neutral-600: #676767;
+  --color-cura-neutral-500: #A0A0A0;
+  --color-cura-neutral-400: #E0E0E0;
+  --color-cura-neutral-300: #F0F0F0;
+  --color-cura-neutral-200: #F8F8F8;
+  --color-cura-neutral-100: #FFFFFF;
+
+  /* Radius */
+  --radius-cura-sm: 5px;
+  --radius-cura-md: 9px;
+  --radius-cura-lg: 12px;
+  --radius-cura-xl: 24px;
+  --radius-cura-pill: 9999px;
+
+  /* Shadows */
+  --shadow-cura-4m: 0px 4px 9px rgba(0, 0, 0, 0.12);
+  --shadow-cura-md: 0px 9px 12px rgba(0, 0, 0, 0.12);
+  --shadow-cura-lg: 0px 14px 15px rgba(0, 0, 0, 0.12);
+  --shadow-cura-xl: 0px 42px 9px rgba(0, 0, 0, 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #F4F4F4;
+  --foreground: #232323;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), sans-serif;
 }

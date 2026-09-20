@@ -14,6 +14,7 @@ import { CommunityReviews } from "@/components/home/community-reviews";
 import { Newsletter } from "@/components/home/newsletter";
 import { Footer } from "@/components/layout/footer";
 
+/** Renders the CURA storefront homepage. */
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-[#F4F4F4] text-[#232323] flex flex-col font-sans">

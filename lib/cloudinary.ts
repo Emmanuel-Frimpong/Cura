@@ -23,6 +23,13 @@ if (cloudinaryUrl) {
 
 export default cloudinary;
 
+/**
+ * Uploads a local file to the requested Cloudinary folder.
+ *
+ * @param filePath - Path to the local file to upload.
+ * @param folder - Cloudinary folder in which to store the asset.
+ * @returns The secure asset URL and its Cloudinary public identifier.
+ */
 export async function uploadToCloudinary(
   filePath: string,
   folder: string = "cura/media"

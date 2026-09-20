@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import { uploadToCloudinary } from "../lib/cloudinary";
 
+/** Uploads local catalog images and writes their resulting URL mapping to disk. */
 async function runUpload() {
   console.log("☁️  Starting batch upload of all image assets to Cloudinary...");
 

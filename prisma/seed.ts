@@ -17,6 +17,7 @@ const CLOUDINARY_IMAGES = {
     "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
 };
 
+/** Seeds the baseline CURA roles, categories, brands, and sample products. */
 async function main() {
   console.log("🌱 Starting CURA database seeding with Cloudinary URLs...");
 

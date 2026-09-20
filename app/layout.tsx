@@ -26,6 +26,7 @@ export const metadata: Metadata = {
   description: "A modern design language for CURA, your destination for curated essentials.",
 };
 
+/** Provides the shared document shell, fonts, and Clerk context for every route. */
 export default function RootLayout({
   children,
 }: {

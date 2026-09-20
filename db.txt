@@ -1,0 +1,1929 @@
+# E-Commerce Platform — Master PostgreSQL Database Design Prompt
+
+## 1. Project Overview
+
+I am building a modern full-stack e-commerce platform specializing in the sale of:
+
+* Sneakers
+* Shirts
+* Wrist Watches
+* Spectacles
+
+The platform will have a customer-facing storefront and an administrative dashboard.
+
+The system must support:
+
+* Customer registration and authentication
+* Product browsing
+* Product categories and subcategories
+* Product search
+* Product filtering and sorting
+* Product variants
+* Product images
+* Product-specific attributes
+* Size and color selection
+* Shopping cart
+* Wishlist
+* Checkout
+* Customer addresses
+* Orders
+* Order status tracking
+* Payments
+* Shipping
+* Coupons and discounts
+* Product reviews and ratings
+* Inventory management
+* Inventory history
+* Admin users and roles
+* Role-based access control
+* Audit logs
+* Product management
+* Order management
+* Customer management
+* Dashboard statistics
+
+The application will use **Clerk for authentication and identity management**.
+
+The application database must be **PostgreSQL**.
+
+---
+
+# 2. Core Architecture Principle
+
+Use the following separation of responsibilities:
+
+### Clerk
+
+Clerk is responsible for:
+
+* Authentication
+* User identity
+* Sign-up
+* Sign-in
+* Password management
+* Email verification
+* Social/OAuth authentication
+* MFA
+* Authentication sessions
+* Authentication tokens
+
+Do NOT duplicate these responsibilities in PostgreSQL.
+
+Do NOT create:
+
+* password
+* password_hash
+* login_token
+* session_token
+* authentication_token
+
+columns in the PostgreSQL database.
+
+### PostgreSQL
+
+PostgreSQL is responsible for all application/business data, including:
+
+* Customer application profile
+* Addresses
+* Products
+* Categories
+* Brands
+* Product variants
+* Product images
+* Product attributes
+* Inventory
+* Shopping carts
+* Wishlists
+* Orders
+* Order items
+* Payments metadata
+* Shipments
+* Reviews
+* Coupons
+* Admin roles
+* Permissions
+* Audit logs
+
+The PostgreSQL database is the **source of truth for commerce/business data**.
+
+---
+
+# 3. Clerk Integration
+
+Create a `customers` table that maps the Clerk user to the application's customer record.
+
+The table must contain:
+
+```text
+id
+clerk_user_id
+first_name
+last_name
+phone
+date_of_birth
+avatar_url
+status
+created_at
+updated_at
+```
+
+`clerk_user_id` must be:
+
+* NOT NULL
+* UNIQUE
+* indexed
+
+The application should use `clerk_user_id` to associate an authenticated Clerk user with their PostgreSQL customer record.
+
+Do not store the user's password or authentication session in PostgreSQL.
+
+The application should be designed so that if a Clerk user is deleted, the corresponding application customer record can be handled appropriately.
+
+Consider webhook synchronization from Clerk for:
+
+* user.created
+* user.updated
+* user.deleted
+
+Do not blindly duplicate every piece of Clerk user data into PostgreSQL. Store only application-specific information required by the store.
+
+---
+
+# 4. Database Design Principles
+
+Use a normalized relational design.
+
+Prefer:
+
+* UUID primary keys
+* Foreign keys
+* Explicit relationships
+* Appropriate indexes
+* `NOT NULL` where appropriate
+* `UNIQUE` constraints
+* `CHECK` constraints
+* Proper cascading/restrictive delete behavior
+* `TIMESTAMPTZ` for timestamps
+* `NUMERIC(12,2)` for monetary values
+* `JSONB` only where flexible/semi-structured data is genuinely useful
+
+Avoid:
+
+* Storing multiple values in comma-separated strings
+* Repeating customer/product information unnecessarily
+* Storing images directly as binary data in normal product records
+* Storing passwords
+* Using floating-point types for money
+* Creating separate product tables for sneakers, shirts, watches, and spectacles
+
+Use one unified product system.
+
+---
+
+# 5. Database Modules
+
+Organize the database conceptually into these modules:
+
+```text
+CUSTOMER MANAGEMENT
+CATALOG MANAGEMENT
+INVENTORY MANAGEMENT
+SHOPPING
+ORDER MANAGEMENT
+PAYMENTS
+SHIPPING
+REVIEWS
+MARKETING
+ADMINISTRATION
+AUDITING
+```
+
+---
+
+# 6. Customers
+
+## Table: customers
+
+Purpose:
+
+Stores application-specific customer information and provides the connection between Clerk and PostgreSQL.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+clerk_user_id       VARCHAR(255) UNIQUE NOT NULL
+first_name          VARCHAR(100)
+last_name           VARCHAR(100)
+phone               VARCHAR(30)
+date_of_birth       DATE
+avatar_url          TEXT
+status              VARCHAR(30) NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Recommended statuses:
+
+```text
+ACTIVE
+SUSPENDED
+DEACTIVATED
+```
+
+Add appropriate CHECK constraints.
+
+---
+
+# 7. Customer Addresses
+
+## Table: addresses
+
+Purpose:
+
+Stores customer delivery and billing addresses.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+customer_id         UUID NOT NULL REFERENCES customers(id)
+label               VARCHAR(50)
+recipient_name      VARCHAR(150) NOT NULL
+phone               VARCHAR(30) NOT NULL
+address_line_1      VARCHAR(255) NOT NULL
+address_line_2      VARCHAR(255)
+city                VARCHAR(100) NOT NULL
+region              VARCHAR(100)
+country             VARCHAR(100) NOT NULL
+postal_code         VARCHAR(30)
+is_default          BOOLEAN NOT NULL DEFAULT FALSE
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+A customer may have multiple addresses.
+
+A customer may designate a default address.
+
+---
+
+# 8. Categories
+
+## Table: categories
+
+Purpose:
+
+Represents product categories and subcategories.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+parent_id           UUID REFERENCES categories(id)
+name                VARCHAR(100) NOT NULL
+slug                VARCHAR(150) UNIQUE NOT NULL
+description         TEXT
+image_url           TEXT
+is_active           BOOLEAN NOT NULL DEFAULT TRUE
+display_order       INTEGER NOT NULL DEFAULT 0
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+The `parent_id` allows hierarchical categories.
+
+Example:
+
+```text
+Fashion
+├── Sneakers
+│   ├── Running
+│   ├── Casual
+│   └── Basketball
+├── Shirts
+├── Wrist Watches
+└── Spectacles
+```
+
+Do not create separate tables such as:
+
+```text
+sneakers
+shirts
+watches
+spectacles
+```
+
+Use the unified `products` table.
+
+---
+
+# 9. Brands
+
+## Table: brands
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+name                VARCHAR(100) NOT NULL
+slug                VARCHAR(150) UNIQUE NOT NULL
+description         TEXT
+logo_url            TEXT
+website_url         TEXT
+is_active           BOOLEAN NOT NULL DEFAULT TRUE
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Products may optionally belong to a brand.
+
+---
+
+# 10. Products
+
+## Table: products
+
+This is the central catalog table.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+category_id         UUID NOT NULL REFERENCES categories(id)
+brand_id            UUID REFERENCES brands(id)
+name                VARCHAR(255) NOT NULL
+slug                VARCHAR(255) UNIQUE NOT NULL
+sku                 VARCHAR(100) UNIQUE NOT NULL
+short_description   TEXT
+description         TEXT
+base_price          NUMERIC(12,2) NOT NULL
+compare_at_price    NUMERIC(12,2)
+status              VARCHAR(30) NOT NULL
+is_featured         BOOLEAN NOT NULL DEFAULT FALSE
+is_new              BOOLEAN NOT NULL DEFAULT FALSE
+is_active           BOOLEAN NOT NULL DEFAULT TRUE
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Use appropriate price validation.
+
+Prices cannot be negative.
+
+Possible statuses:
+
+```text
+DRAFT
+ACTIVE
+ARCHIVED
+```
+
+The product table represents the general product.
+
+Specific purchasable configurations should be represented by `product_variants`.
+
+---
+
+# 11. Product Images
+
+## Table: product_images
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+product_id          UUID NOT NULL REFERENCES products(id)
+image_url           TEXT NOT NULL
+alt_text            VARCHAR(255)
+display_order       INTEGER NOT NULL DEFAULT 0
+is_primary          BOOLEAN NOT NULL DEFAULT FALSE
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Images should be stored in external object/image storage.
+
+PostgreSQL stores their URLs and metadata.
+
+Support multiple images per product.
+
+Example:
+
+```text
+Nike Air Max
+├── Front
+├── Side
+├── Back
+└── Sole
+```
+
+---
+
+# 12. Sizes
+
+## Table: sizes
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+name                VARCHAR(50) NOT NULL
+size_type           VARCHAR(30) NOT NULL
+display_order       INTEGER NOT NULL DEFAULT 0
+```
+
+Possible size types:
+
+```text
+FOOTWEAR
+CLOTHING
+OTHER
+```
+
+Examples:
+
+```text
+40
+41
+42
+43
+44
+
+S
+M
+L
+XL
+XXL
+```
+
+---
+
+# 13. Colors
+
+## Table: colors
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+name                VARCHAR(50) NOT NULL
+hex_code            VARCHAR(7)
+```
+
+Example:
+
+```text
+Black
+White
+Red
+Blue
+Gold
+Brown
+```
+
+---
+
+# 14. Product Variants
+
+## Table: product_variants
+
+This table represents the actual purchasable SKU/configuration.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+product_id          UUID NOT NULL REFERENCES products(id)
+sku                 VARCHAR(100) UNIQUE NOT NULL
+size_id             UUID REFERENCES sizes(id)
+color_id            UUID REFERENCES colors(id)
+price               NUMERIC(12,2) NOT NULL
+compare_at_price    NUMERIC(12,2)
+barcode             VARCHAR(100)
+weight              NUMERIC(10,3)
+is_active           BOOLEAN NOT NULL DEFAULT TRUE
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Examples:
+
+```text
+Nike Air Max
+│
+├── SKU001 — Black / Size 40
+├── SKU002 — Black / Size 41
+├── SKU003 — Black / Size 42
+├── SKU004 — White / Size 40
+└── SKU005 — White / Size 42
+```
+
+Size and color may be NULL where they are not applicable.
+
+For example, a watch may have a color but no conventional size.
+
+Variant-level pricing should be supported because different variants may have different prices.
+
+---
+
+# 15. Product Attributes
+
+## Table: product_attributes
+
+Use this table for category-specific characteristics that cannot reasonably be represented by fixed columns.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+product_id          UUID NOT NULL REFERENCES products(id)
+attribute_name      VARCHAR(100) NOT NULL
+attribute_value     TEXT NOT NULL
+display_order       INTEGER NOT NULL DEFAULT 0
+```
+
+Examples for sneakers:
+
+```text
+Material → Leather
+Sole Material → Rubber
+Closure → Lace-up
+```
+
+Examples for watches:
+
+```text
+Movement → Quartz
+Strap Material → Leather
+Water Resistance → 50m
+Case Material → Stainless Steel
+```
+
+Examples for spectacles:
+
+```text
+Frame Material → Acetate
+Frame Shape → Round
+Lens Type → Clear
+UV Protection → Yes
+```
+
+---
+
+# 16. Inventory
+
+## Table: inventory
+
+Stores the current inventory state for each product variant.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+variant_id          UUID UNIQUE NOT NULL REFERENCES product_variants(id)
+quantity            INTEGER NOT NULL DEFAULT 0
+reserved_quantity   INTEGER NOT NULL DEFAULT 0
+reorder_level       INTEGER NOT NULL DEFAULT 0
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Available quantity is conceptually:
+
+```text
+available_quantity = quantity - reserved_quantity
+```
+
+Quantity cannot be negative.
+
+Reserved quantity cannot be negative.
+
+---
+
+# 17. Inventory Transactions
+
+## Table: inventory_transactions
+
+Purpose:
+
+Maintain a history of inventory changes.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+variant_id          UUID NOT NULL REFERENCES product_variants(id)
+transaction_type    VARCHAR(30) NOT NULL
+quantity            INTEGER NOT NULL
+reference_type      VARCHAR(50)
+reference_id        UUID
+note                TEXT
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible transaction types:
+
+```text
+RESTOCK
+SALE
+RETURN
+DAMAGE
+ADJUSTMENT
+RESERVATION
+RELEASE
+```
+
+This table should provide an auditable history of inventory changes.
+
+---
+
+# 18. Shopping Carts
+
+## Table: carts
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+customer_id         UUID NOT NULL REFERENCES customers(id)
+status              VARCHAR(30) NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible statuses:
+
+```text
+ACTIVE
+ABANDONED
+CONVERTED
+```
+
+A customer should normally have one active cart.
+
+---
+
+# 19. Cart Items
+
+## Table: cart_items
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+cart_id             UUID NOT NULL REFERENCES carts(id)
+variant_id          UUID NOT NULL REFERENCES product_variants(id)
+quantity            INTEGER NOT NULL
+unit_price          NUMERIC(12,2) NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Quantity must be greater than zero.
+
+Use `variant_id`, not only `product_id`, because the customer may select a specific size/color configuration.
+
+Consider a unique constraint:
+
+```text
+(cart_id, variant_id)
+```
+
+so that the same variant does not appear twice in the same cart.
+
+---
+
+# 20. Wishlists
+
+## Table: wishlists
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+customer_id         UUID UNIQUE NOT NULL REFERENCES customers(id)
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+---
+
+# 21. Wishlist Items
+
+## Table: wishlist_items
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+wishlist_id         UUID NOT NULL REFERENCES wishlists(id)
+product_id          UUID NOT NULL REFERENCES products(id)
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Add:
+
+```text
+UNIQUE(wishlist_id, product_id)
+```
+
+to prevent duplicate wishlist entries.
+
+---
+
+# 22. Orders
+
+## Table: orders
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+customer_id         UUID NOT NULL REFERENCES customers(id)
+order_number        VARCHAR(50) UNIQUE NOT NULL
+status              VARCHAR(30) NOT NULL
+subtotal            NUMERIC(12,2) NOT NULL
+discount_amount     NUMERIC(12,2) NOT NULL DEFAULT 0
+shipping_fee        NUMERIC(12,2) NOT NULL DEFAULT 0
+tax_amount          NUMERIC(12,2) NOT NULL DEFAULT 0
+total_amount        NUMERIC(12,2) NOT NULL
+currency            CHAR(3) NOT NULL DEFAULT 'GHS'
+shipping_address    JSONB NOT NULL
+billing_address     JSONB
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible statuses:
+
+```text
+PENDING
+CONFIRMED
+PROCESSING
+SHIPPED
+OUT_FOR_DELIVERY
+DELIVERED
+CANCELLED
+RETURNED
+```
+
+Do not rely exclusively on the customer's current address.
+
+Store an immutable snapshot of the shipping address used for the order.
+
+This prevents future address changes from modifying historical orders.
+
+---
+
+# 23. Order Items
+
+## Table: order_items
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+order_id            UUID NOT NULL REFERENCES orders(id)
+variant_id          UUID REFERENCES product_variants(id)
+product_name        VARCHAR(255) NOT NULL
+sku                 VARCHAR(100) NOT NULL
+variant_description TEXT
+quantity            INTEGER NOT NULL
+unit_price          NUMERIC(12,2) NOT NULL
+discount_amount     NUMERIC(12,2) NOT NULL DEFAULT 0
+subtotal            NUMERIC(12,2) NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Store product information snapshots such as:
+
+```text
+product_name
+sku
+unit_price
+variant_description
+```
+
+because the product may be renamed, repriced, or modified after an order has been completed.
+
+The historical order must remain accurate.
+
+---
+
+# 24. Order Status History
+
+## Table: order_status_history
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+order_id            UUID NOT NULL REFERENCES orders(id)
+status              VARCHAR(30) NOT NULL
+note                TEXT
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+This allows the system to display an order timeline:
+
+```text
+Order Placed
+      ↓
+Confirmed
+      ↓
+Processing
+      ↓
+Shipped
+      ↓
+Out for Delivery
+      ↓
+Delivered
+```
+
+---
+
+# 25. Payments
+
+## Table: payments
+
+The payment provider should handle sensitive payment information.
+
+PostgreSQL stores only the transaction metadata needed by the application.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+order_id            UUID NOT NULL REFERENCES orders(id)
+provider            VARCHAR(50) NOT NULL
+payment_reference   VARCHAR(255) UNIQUE
+amount              NUMERIC(12,2) NOT NULL
+currency            CHAR(3) NOT NULL
+status              VARCHAR(30) NOT NULL
+paid_at             TIMESTAMPTZ
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible statuses:
+
+```text
+PENDING
+SUCCESS
+FAILED
+REFUNDED
+CANCELLED
+```
+
+Do not store:
+
+```text
+card_number
+CVV
+PIN
+full payment credentials
+```
+
+---
+
+# 26. Shipments
+
+## Table: shipments
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+order_id            UUID NOT NULL REFERENCES orders(id)
+carrier             VARCHAR(100)
+shipping_method     VARCHAR(100)
+tracking_number     VARCHAR(255)
+status              VARCHAR(30) NOT NULL
+shipped_at          TIMESTAMPTZ
+estimated_delivery  TIMESTAMPTZ
+delivered_at        TIMESTAMPTZ
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible statuses:
+
+```text
+PENDING
+PROCESSING
+SHIPPED
+IN_TRANSIT
+OUT_FOR_DELIVERY
+DELIVERED
+FAILED
+RETURNED
+```
+
+---
+
+# 27. Reviews
+
+## Table: reviews
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+product_id          UUID NOT NULL REFERENCES products(id)
+customer_id         UUID NOT NULL REFERENCES customers(id)
+order_item_id       UUID REFERENCES order_items(id)
+rating              SMALLINT NOT NULL
+title               VARCHAR(255)
+comment             TEXT
+is_verified         BOOLEAN NOT NULL DEFAULT FALSE
+status              VARCHAR(30) NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Rating must be between:
+
+```text
+1 and 5
+```
+
+Possible review statuses:
+
+```text
+PENDING
+APPROVED
+REJECTED
+HIDDEN
+```
+
+The optional `order_item_id` can be used to verify whether the customer actually purchased the product.
+
+Consider preventing multiple reviews for the same customer and order item where appropriate.
+
+---
+
+# 28. Review Images
+
+## Table: review_images
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+review_id           UUID NOT NULL REFERENCES reviews(id)
+image_url           TEXT NOT NULL
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Customers may upload images with their reviews.
+
+Actual image files should be stored externally.
+
+---
+
+# 29. Coupons
+
+## Table: coupons
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+code                VARCHAR(50) UNIQUE NOT NULL
+description         TEXT
+discount_type       VARCHAR(30) NOT NULL
+discount_value      NUMERIC(12,2) NOT NULL
+minimum_order       NUMERIC(12,2)
+maximum_discount    NUMERIC(12,2)
+usage_limit         INTEGER
+per_customer_limit  INTEGER
+starts_at           TIMESTAMPTZ
+expires_at          TIMESTAMPTZ
+is_active            BOOLEAN NOT NULL DEFAULT TRUE
+created_at          TIMESTAMPTZ NOT NULL
+updated_at          TIMESTAMPTZ NOT NULL
+```
+
+Possible discount types:
+
+```text
+PERCENTAGE
+FIXED_AMOUNT
+```
+
+The schema should be extensible so more complex promotions can be introduced later.
+
+Validate discount values appropriately.
+
+---
+
+# 30. Coupon Usage
+
+## Table: coupon_usages
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+coupon_id           UUID NOT NULL REFERENCES coupons(id)
+customer_id         UUID NOT NULL REFERENCES customers(id)
+order_id            UUID NOT NULL REFERENCES orders(id)
+discount_amount     NUMERIC(12,2) NOT NULL
+used_at             TIMESTAMPTZ NOT NULL
+```
+
+This table tracks who used a coupon and on which order.
+
+---
+
+# 31. Roles
+
+## Table: roles
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+name                VARCHAR(100) UNIQUE NOT NULL
+description         TEXT
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Initial roles may include:
+
+```text
+SUPER_ADMIN
+PRODUCT_MANAGER
+INVENTORY_MANAGER
+ORDER_MANAGER
+CUSTOMER_SUPPORT
+```
+
+---
+
+# 32. Admin Users
+
+## Table: admin_users
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+customer_id         UUID UNIQUE NOT NULL REFERENCES customers(id)
+role_id             UUID NOT NULL REFERENCES roles(id)
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+The actual authentication remains with Clerk.
+
+This table determines what application-level administrative privileges the user has.
+
+---
+
+# 33. Permissions
+
+For a scalable RBAC system, also create:
+
+## Table: permissions
+
+```text
+id                  UUID PRIMARY KEY
+name                VARCHAR(100) UNIQUE NOT NULL
+description         TEXT
+```
+
+Example permissions:
+
+```text
+products.view
+products.create
+products.update
+products.delete
+
+inventory.view
+inventory.update
+
+orders.view
+orders.update
+orders.cancel
+
+customers.view
+customers.update
+
+reviews.view
+reviews.moderate
+
+coupons.view
+coupons.create
+coupons.update
+coupons.delete
+
+admins.view
+admins.manage
+```
+
+---
+
+# 34. Role Permissions
+
+## Table: role_permissions
+
+Fields:
+
+```text
+role_id             UUID NOT NULL REFERENCES roles(id)
+permission_id       UUID NOT NULL REFERENCES permissions(id)
+
+PRIMARY KEY (role_id, permission_id)
+```
+
+This creates a many-to-many relationship between roles and permissions.
+
+Example:
+
+```text
+PRODUCT_MANAGER
+    ↓
+products.view
+products.create
+products.update
+products.delete
+```
+
+---
+
+# 35. Audit Logs
+
+## Table: audit_logs
+
+Purpose:
+
+Record important administrative/system actions.
+
+Fields:
+
+```text
+id                  UUID PRIMARY KEY
+clerk_user_id       VARCHAR(255)
+action              VARCHAR(100) NOT NULL
+entity_type         VARCHAR(100)
+entity_id           UUID
+old_values          JSONB
+new_values          JSONB
+created_at          TIMESTAMPTZ NOT NULL
+```
+
+Examples:
+
+```text
+PRODUCT_CREATED
+PRODUCT_UPDATED
+PRODUCT_DELETED
+PRICE_CHANGED
+INVENTORY_ADJUSTED
+ORDER_STATUS_CHANGED
+CUSTOMER_SUSPENDED
+COUPON_CREATED
+ADMIN_ROLE_CHANGED
+```
+
+Use JSONB for old/new values where appropriate.
+
+---
+
+# 36. Complete Table List
+
+The initial production schema should contain these tables:
+
+## Customer Management
+
+```text
+1. customers
+2. addresses
+```
+
+## Catalog
+
+```text
+3. categories
+4. brands
+5. products
+6. product_images
+7. product_variants
+8. sizes
+9. colors
+10. product_attributes
+```
+
+## Inventory
+
+```text
+11. inventory
+12. inventory_transactions
+```
+
+## Shopping
+
+```text
+13. carts
+14. cart_items
+15. wishlists
+16. wishlist_items
+```
+
+## Orders
+
+```text
+17. orders
+18. order_items
+19. order_status_history
+20. payments
+21. shipments
+```
+
+## Reviews & Marketing
+
+```text
+22. reviews
+23. review_images
+24. coupons
+25. coupon_usages
+```
+
+## Administration
+
+```text
+26. roles
+27. permissions
+28. role_permissions
+29. admin_users
+30. audit_logs
+```
+
+Total:
+
+**30 tables**
+
+---
+
+# 37. Major Relationships
+
+Implement the following relationships.
+
+```text
+customers
+    │
+    ├──< addresses
+    ├──< carts
+    ├──< wishlists
+    ├──< orders
+    ├──< reviews
+    ├──< coupon_usages
+    └──< admin_users
+
+
+categories
+    │
+    ├──< products
+    └── self-reference through parent_id
+
+
+brands
+    │
+    └──< products
+
+
+products
+    │
+    ├──< product_images
+    ├──< product_variants
+    ├──< product_attributes
+    ├──< reviews
+    └──< wishlist_items
+
+
+product_variants
+    │
+    ├── inventory
+    ├──< inventory_transactions
+    ├──< cart_items
+    └──< order_items
+
+
+orders
+    │
+    ├──< order_items
+    ├──< order_status_history
+    ├──< payments
+    └──< shipments
+
+
+reviews
+    │
+    └──< review_images
+
+
+coupons
+    │
+    └──< coupon_usages
+
+
+roles
+    │
+    └──< role_permissions >── permissions
+```
+
+---
+
+# 38. Delete Rules
+
+Use deliberate foreign-key deletion behavior.
+
+Do not use `ON DELETE CASCADE` everywhere.
+
+Recommended principles:
+
+### Customer
+
+If a customer account is deleted, carefully preserve historical orders where required.
+
+Orders should generally not disappear simply because a customer account is deleted.
+
+### Products
+
+Do not allow deletion of a product that is referenced by historical order data unless the relationship has been designed to preserve the historical order.
+
+Prefer soft deletion/archive for products.
+
+### Categories
+
+Prevent deletion where products still depend on the category, or implement a controlled reassignment process.
+
+### Orders
+
+Do not cascade-delete order items, payments, shipments, or status history accidentally.
+
+Orders are historical business records.
+
+### Cart
+
+Cart items may be safely cascade-deleted when a cart is permanently removed.
+
+### Wishlist
+
+Wishlist items can cascade-delete with the wishlist.
+
+### Reviews
+
+Review images can cascade-delete with the review.
+
+Document every `ON DELETE` behavior.
+
+---
+
+# 39. Indexing Strategy
+
+Create indexes for frequently queried fields.
+
+At minimum consider indexes on:
+
+```text
+customers.clerk_user_id
+
+addresses.customer_id
+
+categories.parent_id
+categories.slug
+
+brands.slug
+
+products.category_id
+products.brand_id
+products.slug
+products.sku
+products.status
+products.is_featured
+products.is_new
+
+product_images.product_id
+
+product_variants.product_id
+product_variants.sku
+product_variants.size_id
+product_variants.color_id
+
+inventory.variant_id
+
+inventory_transactions.variant_id
+
+carts.customer_id
+carts.status
+
+cart_items.cart_id
+cart_items.variant_id
+
+wishlists.customer_id
+
+wishlist_items.wishlist_id
+wishlist_items.product_id
+
+orders.customer_id
+orders.order_number
+orders.status
+orders.created_at
+
+order_items.order_id
+order_items.variant_id
+
+order_status_history.order_id
+
+payments.order_id
+payments.payment_reference
+payments.status
+
+shipments.order_id
+shipments.tracking_number
+
+reviews.product_id
+reviews.customer_id
+reviews.status
+
+coupon_usages.coupon_id
+coupon_usages.customer_id
+
+admin_users.role_id
+
+audit_logs.clerk_user_id
+audit_logs.entity_type
+audit_logs.entity_id
+audit_logs.created_at
+```
+
+Do not blindly index every column. Index based on query patterns.
+
+---
+
+# 40. Money and Currency
+
+Use:
+
+```text
+NUMERIC(12,2)
+```
+
+for monetary values.
+
+Do not use:
+
+```text
+FLOAT
+REAL
+DOUBLE PRECISION
+```
+
+for financial amounts.
+
+Store the currency code using:
+
+```text
+CHAR(3)
+```
+
+Default currency:
+
+```text
+GHS
+```
+
+The system should remain capable of supporting other currencies in the future.
+
+---
+
+# 41. Timestamps
+
+Use:
+
+```text
+TIMESTAMPTZ
+```
+
+for timestamps.
+
+Default creation/update timestamps appropriately.
+
+The system should store timestamps consistently in UTC and convert them to the user's local timezone at the application/UI level.
+
+---
+
+# 42. UUIDs
+
+Use PostgreSQL UUIDs for primary keys.
+
+Prefer UUID generation using PostgreSQL-supported UUID functions/extensions appropriate to the deployed PostgreSQL version.
+
+Do not use predictable sequential integer IDs for externally exposed entities unless there is a specific reason.
+
+---
+
+# 43. Slugs
+
+Products, categories, and brands should have unique slugs.
+
+Example:
+
+```text
+Nike Air Max 270
+```
+
+becomes:
+
+```text
+nike-air-max-270
+```
+
+Slugs must be indexed and unique.
+
+---
+
+# 44. Product Search
+
+Design the database so the application can support:
+
+* Search by product name
+* Search by SKU
+* Search by brand
+* Search by category
+* Search by attributes
+* Filtering by price
+* Filtering by size
+* Filtering by color
+* Sorting by price
+* Sorting by newest
+* Sorting by popularity
+* Sorting by rating
+
+PostgreSQL full-text search or appropriate indexed search strategies may be used.
+
+Do not introduce Elasticsearch or another search engine unless the project's scale actually requires it.
+
+---
+
+# 45. Product Rating
+
+Do not necessarily store a permanently duplicated rating total on the product table initially.
+
+Ratings can be calculated from reviews.
+
+If performance later requires denormalized rating statistics, consider adding fields such as:
+
+```text
+average_rating
+review_count
+```
+
+and maintain them carefully.
+
+Do not introduce denormalization without a clear reason.
+
+---
+
+# 46. Inventory and Orders
+
+Inventory operations must be transactional.
+
+When an order is successfully placed:
+
+1. Validate product availability.
+2. Validate variant availability.
+3. Reserve or decrement inventory.
+4. Create the order.
+5. Create order items.
+6. Create the payment record.
+7. Record inventory transactions.
+8. Update order status.
+9. Commit the transaction.
+
+If any critical step fails, rollback the appropriate transaction.
+
+Prevent overselling through proper PostgreSQL transactions and row-level locking where necessary.
+
+---
+
+# 47. Checkout
+
+The checkout process should conceptually work like:
+
+```text
+Customer
+   ↓
+Cart
+   ↓
+Validate items
+   ↓
+Validate inventory
+   ↓
+Calculate subtotal
+   ↓
+Apply coupon
+   ↓
+Calculate shipping
+   ↓
+Calculate tax if applicable
+   ↓
+Calculate total
+   ↓
+Create order
+   ↓
+Initiate payment
+   ↓
+Receive payment confirmation
+   ↓
+Confirm order
+   ↓
+Update inventory
+   ↓
+Create shipment when fulfilled
+```
+
+Do not trust prices or totals submitted by the frontend.
+
+The backend must calculate authoritative prices.
+
+---
+
+# 48. Security Requirements
+
+Implement:
+
+* Foreign key constraints
+* Input validation
+* Parameterized SQL queries
+* Proper authorization
+* RBAC
+* Audit logging
+* Secure handling of payment-provider webhooks
+* No plaintext passwords
+* No sensitive payment credentials
+* No trust in frontend-submitted prices
+* No trust in frontend-submitted inventory quantities
+
+Clerk authentication must be verified server-side.
+
+The backend must determine the authenticated Clerk user and then map that identity to the PostgreSQL `customers` record.
+
+---
+
+# 49. PostgreSQL Schema Organization
+
+Use a dedicated PostgreSQL schema if appropriate.
+
+For example:
+
+```text
+public
+```
+
+may contain the application's tables initially.
+
+If using multiple logical schemas, clearly document them.
+
+Do not create unnecessary database schemas solely for visual organization.
+
+---
+
+# 50. Future Extensibility
+
+The design should be extensible for future features such as:
+
+```text
+Product collections
+Flash sales
+Advanced promotions
+Gift cards
+Product bundles
+Multiple warehouses
+Suppliers
+Returns
+Refunds
+Customer loyalty points
+Subscriptions
+Abandoned-cart recovery
+Product recommendations
+Recently viewed products
+Notifications
+Blog/content
+Multiple vendors/marketplace functionality
+```
+
+Do not implement all of these now unless explicitly requested.
+
+Design the current system cleanly so they can be added later.
+
+---
+
+# 51. Important Architectural Constraint
+
+Do NOT add Redis, MongoDB, Sanity, Elasticsearch, or another database to this PostgreSQL architecture unless there is a clearly justified requirement.
+
+PostgreSQL should initially remain the primary and authoritative application database.
+
+Redis, if introduced later, should be treated as a cache/session/performance layer and should not replace PostgreSQL as the source of truth for orders, payments, inventory, or customer business data.
+
+Sanity, if introduced later, should be used for editorial/marketing content rather than replacing PostgreSQL's transactional commerce data.
+
+---
+
+# 52. Expected Deliverables
+
+Based on this specification, produce the following:
+
+### A. ERD
+
+Create a complete Entity Relationship Diagram showing all 30 tables and their relationships.
+
+Clearly identify:
+
+* Primary keys
+* Foreign keys
+* One-to-one relationships
+* One-to-many relationships
+* Many-to-many relationships
+
+### B. PostgreSQL Schema
+
+Generate production-quality PostgreSQL DDL containing:
+
+* `CREATE TABLE`
+* Primary keys
+* Foreign keys
+* Unique constraints
+* Check constraints
+* Defaults
+* Indexes
+* Appropriate `ON DELETE` behavior
+
+### C. Enums
+
+Where appropriate, use PostgreSQL enums or controlled constraints for fields such as:
+
+```text
+order status
+payment status
+product status
+review status
+inventory transaction type
+```
+
+Explain whether enum types or VARCHAR + CHECK constraints are preferable for each case.
+
+### D. Seed Data
+
+Create seed data for:
+
+```text
+Categories:
+Sneakers
+Shirts
+Wrist Watches
+Spectacles
+
+Sample brands
+
+Sample sizes
+
+Sample colors
+
+Initial roles
+
+Initial permissions
+```
+
+Include a few realistic sample products and variants.
+
+### E. Migration Structure
+
+Organize the SQL so it can be safely executed as migrations.
+
+Do not create a single unstructured SQL file if a migration-based structure is more appropriate.
+
+### F. Documentation
+
+Document:
+
+* Table purpose
+* Column purpose
+* Relationships
+* Constraints
+* Indexes
+* Authentication architecture
+* Inventory flow
+* Order flow
+* Payment flow
+* Clerk integration
+
+---
+
+# 53. Final Database Architecture
+
+The final conceptual architecture should be:
+
+```text
+                         ┌──────────────────┐
+                         │      CLERK       │
+                         │                  │
+                         │ Authentication   │
+                         │ Identity         │
+                         │ Sessions         │
+                         │ OAuth            │
+                         │ MFA              │
+                         └────────┬─────────┘
+                                  │
+                           clerk_user_id
+                                  │
+                                  ↓
+                         ┌──────────────────┐
+                         │    CUSTOMERS     │
+                         └────────┬─────────┘
+                                  │
+             ┌────────────────────┼────────────────────┐
+             ↓                    ↓                    ↓
+        ADDRESSES              CARTS              WISHLISTS
+                                  │                    │
+                                  ↓                    ↓
+                            CART_ITEMS          WISHLIST_ITEMS
+                                  │                    │
+                                  └──────────┬─────────┘
+                                             ↓
+                                        PRODUCTS
+                                        /   |   \
+                                       /    |    \
+                                      ↓     ↓     ↓
+                                CATEGORIES BRANDS IMAGES
+                                             │
+                                             ↓
+                                      PRODUCT_VARIANTS
+                                       /      |      \
+                                      ↓       ↓       ↓
+                                   SIZES    COLORS  INVENTORY
+                                                     │
+                                                     ↓
+                                          INVENTORY_TRANSACTIONS
+
+
+CUSTOMERS
+    │
+    ↓
+  ORDERS
+    │
+    ├── ORDER_ITEMS ──→ PRODUCT_VARIANTS
+    │
+    ├── PAYMENTS
+    │
+    ├── SHIPMENTS
+    │
+    └── ORDER_STATUS_HISTORY
+
+
+CUSTOMERS ──→ REVIEWS ──→ PRODUCTS
+                 │
+                 ↓
+            REVIEW_IMAGES
+
+
+COUPONS ──→ COUPON_USAGES ──→ ORDERS
+
+
+ROLES ──→ ROLE_PERMISSIONS ←── PERMISSIONS
+  │
+  ↓
+ADMIN_USERS ──→ CUSTOMERS
+
+
+ADMIN_USERS / CLERK USERS
+          │
+          ↓
+      AUDIT_LOGS
+```
+
+## Final Requirement
+
+Before generating implementation code, carefully validate the schema for:
+
+* Normalization
+* Referential integrity
+* Circular dependencies
+* Appropriate foreign-key behavior
+* Inventory consistency
+* Order history preservation
+* Payment integrity
+* Clerk integration
+* RBAC
+* Data security
+* Indexing
+* Scalability
+
+Do not simplify the schema by removing important relationships merely to reduce the number of tables.
+
+Do not introduce unnecessary technologies.
+
+The goal is a **clean, normalized, production-ready PostgreSQL database for a modern e-commerce platform with Clerk authentication**.

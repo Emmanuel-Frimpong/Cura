@@ -19,7 +19,7 @@ export const BestSellers: React.FC = () => {
       price: "$115.00",
       rating: "4.9 (128)",
       saleBadge: "-15%",
-      image: "/images/sneaker.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
     },
     {
       id: 2,
@@ -28,7 +28,7 @@ export const BestSellers: React.FC = () => {
       variant: "Unisex Shoes",
       price: "$100.00",
       rating: "4.8 (94)",
-      image: "/images/hero_preview.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
     },
     {
       id: 3,
@@ -38,7 +38,7 @@ export const BestSellers: React.FC = () => {
       price: "$210.00",
       rating: "5.0 (312)",
       saleBadge: "40% OFF",
-      image: "/images/hero_preview.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
     },
     {
       id: 4,
@@ -47,7 +47,7 @@ export const BestSellers: React.FC = () => {
       variant: "Athletic Running",
       price: "$120.00",
       rating: "4.7 (85)",
-      image: "/images/sneaker.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
     },
     {
       id: 5,
@@ -56,7 +56,7 @@ export const BestSellers: React.FC = () => {
       variant: "White/Rustic Classic",
       price: "$75.00",
       rating: "4.9 (62)",
-      image: "/images/shirt.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
     },
   ];
 

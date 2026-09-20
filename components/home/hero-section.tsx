@@ -64,7 +64,7 @@ export const HeroSection: React.FC = () => {
         <div className="lg:col-span-6 relative">
           <div className="relative rounded-[24px] overflow-hidden border border-[#E0E0E0] bg-white shadow-xl">
             <img
-              src="/images/hero_preview.jpg"
+              src="https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg"
               alt="Air Jordan 1 Retro High OG"
               className="w-full h-auto object-cover max-h-[520px]"
             />

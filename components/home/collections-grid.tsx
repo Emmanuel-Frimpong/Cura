@@ -2,12 +2,12 @@ import React from "react";
 
 export const CollectionsGrid: React.FC = () => {
   const collections = [
-    { title: "STREETWEAR", count: "247 ITEMS", image: "/images/hero_preview.jpg" },
-    { title: "FORMAL", count: "132 ITEMS", image: "/images/cat_apparel.jpg" },
-    { title: "CASUAL", count: "489 ITEMS", image: "/images/sneaker.jpg" },
-    { title: "SPORTS", count: "310 ITEMS", image: "/images/hero_preview.jpg" },
-    { title: "LUXURY", count: "95 ITEMS", image: "/images/watches.jpg" },
-    { title: "SUMMER '26", count: "84 ITEMS", image: "/images/cat_eyewear.jpg" },
+    { title: "STREETWEAR", count: "247 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg" },
+    { title: "FORMAL", count: "132 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939419/cura/media/jlcvwvmt6uwyzp9ydnah.jpg" },
+    { title: "CASUAL", count: "489 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg" },
+    { title: "SPORTS", count: "310 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg" },
+    { title: "LUXURY", count: "95 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg" },
+    { title: "SUMMER '26", count: "84 ITEMS", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg" },
   ];
 
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
 
 export interface MainHeaderProps {
   cartCount?: number;
@@ -71,8 +72,8 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
           </div>
         </div>
 
-        {/* Action Icons */}
-        <div className="flex items-center gap-5 text-[#232323]">
+        {/* Action Icons & Auth Controls */}
+        <div className="flex items-center gap-4 text-[#232323]">
           {/* Mobile Search Icon */}
           <button className="lg:hidden p-2 hover:opacity-75">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,12 +101,24 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             </span>
           </button>
 
-          {/* User Account */}
-          <button className="p-2 hover:opacity-75 transition-opacity cursor-pointer">
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </button>
+          {/* Clerk Auth Controls */}
+          <div className="flex items-center gap-2 pl-2 border-l border-[#E0E0E0]">
+            <Show when="signed-out">
+              <SignInButton mode="modal">
+                <button className="px-3 py-1.5 text-[13px] font-bold text-[#232323] hover:text-[#676767] transition-colors cursor-pointer">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <button className="px-4 py-1.5 text-[13px] font-bold text-white bg-[#232323] rounded-[8px] hover:bg-[#454545] transition-colors cursor-pointer shadow-xs">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
+          </div>
         </div>
       </div>
     </header>

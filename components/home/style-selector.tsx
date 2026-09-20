@@ -2,13 +2,13 @@ import React from "react";
 
 export const StyleSelector: React.FC = () => {
   const styles = [
-    { title: "Running", image: "/images/sneaker.jpg" },
-    { title: "Lifestyle", image: "/images/hero_preview.jpg" },
-    { title: "Basketball", image: "/images/sneaker.jpg" },
-    { title: "Training", image: "/images/hero_preview.jpg" },
-    { title: "Skateboarding", image: "/images/sneaker.jpg" },
-    { title: "Athletic", image: "/images/hero_preview.jpg" },
-    { title: "Boots", image: "/images/sneaker.jpg" },
+    { title: "Running", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg" },
+    { title: "Lifestyle", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg" },
+    { title: "Basketball", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg" },
+    { title: "Training", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg" },
+    { title: "Skateboarding", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg" },
+    { title: "Athletic", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg" },
+    { title: "Boots", image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg" },
   ];
 
   return (

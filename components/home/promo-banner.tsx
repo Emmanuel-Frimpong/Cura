@@ -36,7 +36,7 @@ export const PromoBanner: React.FC = () => {
           <div className="lg:col-span-4 relative z-10">
             <div className="rounded-[16px] overflow-hidden border border-white/10 shadow-lg">
               <img
-                src="/images/cat_apparel.jpg"
+                src="https://res.cloudinary.com/ovwiwt64/image/upload/v1789939419/cura/media/jlcvwvmt6uwyzp9ydnah.jpg"
                 alt="Summer Sale Banner"
                 className="w-full h-[220px] object-cover"
               />

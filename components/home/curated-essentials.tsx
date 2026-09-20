@@ -7,28 +7,28 @@ export const CuratedEssentials: React.FC = () => {
       title: "SNEAKERS",
       desc: "Icons & authentic kicks for everyday style, field, and street performance.",
       cta: "EXPLORE FOOTWEAR",
-      image: "/images/sneaker.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
     },
     {
       label: "APPAREL",
       title: "SHIRTS & TEES",
       desc: "Clean luxury wardrobe essentials, linen shirts, graphic tees, and sleek tailoring.",
       cta: "EXPLORE SHIRTS",
-      image: "/images/cat_apparel.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939419/cura/media/jlcvwvmt6uwyzp9ydnah.jpg",
     },
     {
       label: "HOROLOGY",
       title: "WRIST WATCHES",
       desc: "Automatic chronographs, minimal everyday timepieces, and rare luxury wristwatches.",
       cta: "EXPLORE WATCHES",
-      image: "/images/watches.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
     },
     {
       label: "EYEWEAR",
       title: "SPECTACLES",
       desc: "Acetate optical frames and premium solar sunglasses engineered with maximum UV clarity.",
       cta: "EXPLORE SPECTACLES",
-      image: "/images/cat_eyewear.jpg",
+      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
     },
   ];
 

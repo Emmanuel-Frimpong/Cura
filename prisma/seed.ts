@@ -1,177 +1,270 @@
-import { PrismaClient, ProductStatus } from "@prisma/client";
+import { PrismaClient, ProductStatus, InventoryTransactionType } from "@prisma/client";
+import {
+  CATEGORIES_SEED,
+  BRANDS_SEED,
+  SIZES_SEED,
+  COLORS_SEED,
+  SNEAKERS_SEED,
+  SHIRTS_SEED,
+  WATCHES_SEED,
+  SPECTACLES_SEED,
+  ProductSeedInput,
+} from "./seed-data";
 
 const prisma = new PrismaClient();
 
-const CLOUDINARY_IMAGES = {
-  sneaker:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
-  cat_apparel:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939419/cura/media/jlcvwvmt6uwyzp9ydnah.jpg",
-  watches:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
-  cat_eyewear:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
-  hero_preview:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
-  shirt:
-    "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
-};
-
-/** Seeds the baseline CURA roles, categories, brands, and sample products. */
 async function main() {
-  console.log("🌱 Starting CURA database seeding with Cloudinary URLs...");
+  console.log("🌱 Starting CURA 80-Product Catalog Database Seeding...");
 
-  // 1. Roles & Permissions
-  const superAdminRole = await prisma.role.upsert({
+  // 1. Roles
+  await prisma.role.upsert({
     where: { name: "SUPER_ADMIN" },
     update: {},
-    create: {
-      name: "SUPER_ADMIN",
-      description: "Full system administration access",
-    },
+    create: { name: "SUPER_ADMIN", description: "Full system administration access" },
   });
 
-  const customerRole = await prisma.role.upsert({
+  await prisma.role.upsert({
     where: { name: "CUSTOMER" },
     update: {},
-    create: {
-      name: "CUSTOMER",
-      description: "Standard customer shopper access",
-    },
+    create: { name: "CUSTOMER", description: "Standard customer shopper access" },
   });
 
-  // 2. Categories with Cloudinary Image URLs
-  const sneakersCat = await prisma.category.upsert({
-    where: { slug: "sneakers" },
-    update: { imageUrl: CLOUDINARY_IMAGES.sneaker },
-    create: {
-      name: "Sneakers",
-      slug: "sneakers",
-      description: "Authentic branded shoes & footwear",
-      imageUrl: CLOUDINARY_IMAGES.sneaker,
-      displayOrder: 1,
-    },
-  });
-
-  const shirtsCat = await prisma.category.upsert({
-    where: { slug: "shirts-apparel" },
-    update: { imageUrl: CLOUDINARY_IMAGES.cat_apparel },
-    create: {
-      name: "Shirts & Apparel",
-      slug: "shirts-apparel",
-      description: "Luxury shirts, apparel & wardrobe essentials",
-      imageUrl: CLOUDINARY_IMAGES.cat_apparel,
-      displayOrder: 2,
-    },
-  });
-
-  const watchesCat = await prisma.category.upsert({
-    where: { slug: "wrist-watches" },
-    update: { imageUrl: CLOUDINARY_IMAGES.watches },
-    create: {
-      name: "Wrist Watches",
-      slug: "wrist-watches",
-      description: "Precision horology & luxury wristwatches",
-      imageUrl: CLOUDINARY_IMAGES.watches,
-      displayOrder: 3,
-    },
-  });
-
-  const eyewearCat = await prisma.category.upsert({
-    where: { slug: "spectacles-eyewear" },
-    update: { imageUrl: CLOUDINARY_IMAGES.cat_eyewear },
-    create: {
-      name: "Spectacles & Eyewear",
-      slug: "spectacles-eyewear",
-      description: "Optical frames & solar sunglasses",
-      imageUrl: CLOUDINARY_IMAGES.cat_eyewear,
-      displayOrder: 4,
-    },
-  });
+  // 2. Categories
+  const categoryMap = new Map<string, string>();
+  for (const catSeed of CATEGORIES_SEED) {
+    const dbCat = await prisma.category.upsert({
+      where: { slug: catSeed.slug },
+      update: {
+        name: catSeed.name,
+        description: catSeed.description,
+        imageUrl: catSeed.imageUrl,
+        displayOrder: catSeed.displayOrder,
+      },
+      create: {
+        name: catSeed.name,
+        slug: catSeed.slug,
+        description: catSeed.description,
+        imageUrl: catSeed.imageUrl,
+        displayOrder: catSeed.displayOrder,
+      },
+    });
+    categoryMap.set(catSeed.slug, dbCat.id);
+  }
 
   // 3. Brands
-  const nikeBrand = await prisma.brand.upsert({
-    where: { slug: "nike" },
-    update: {},
-    create: { name: "Nike", slug: "nike" },
-  });
+  const brandMap = new Map<string, string>();
+  for (const bSeed of BRANDS_SEED) {
+    const dbBrand = await prisma.brand.upsert({
+      where: { slug: bSeed.slug },
+      update: { name: bSeed.name, description: bSeed.description },
+      create: { name: bSeed.name, slug: bSeed.slug, description: bSeed.description },
+    });
+    brandMap.set(bSeed.slug, dbBrand.id);
+  }
 
-  const adidasBrand = await prisma.brand.upsert({
-    where: { slug: "adidas" },
-    update: {},
-    create: { name: "Adidas", slug: "adidas" },
-  });
+  // 4. Sizes
+  const sizeMap = new Map<string, string>();
+  for (const sSeed of SIZES_SEED) {
+    const existingSize = await prisma.size.findFirst({
+      where: { categoryType: sSeed.categoryType, code: sSeed.code },
+    });
+    if (existingSize) {
+      sizeMap.set(`${sSeed.categoryType}:${sSeed.code}`, existingSize.id);
+    } else {
+      const created = await prisma.size.create({
+        data: {
+          categoryType: sSeed.categoryType,
+          name: sSeed.name,
+          code: sSeed.code,
+          displayOrder: sSeed.displayOrder,
+        },
+      });
+      sizeMap.set(`${sSeed.categoryType}:${sSeed.code}`, created.id);
+    }
+  }
 
-  const jordanBrand = await prisma.brand.upsert({
-    where: { slug: "jordan" },
-    update: {},
-    create: { name: "Jordan", slug: "jordan" },
-  });
+  // 5. Colors
+  const colorMap = new Map<string, string>();
+  for (const cSeed of COLORS_SEED) {
+    const existingColor = await prisma.color.findFirst({
+      where: { name: cSeed.name },
+    });
+    if (existingColor) {
+      colorMap.set(cSeed.name, existingColor.id);
+    } else {
+      const created = await prisma.color.create({
+        data: { name: cSeed.name, hexCode: cSeed.hexCode },
+      });
+      colorMap.set(cSeed.name, created.id);
+    }
+  }
 
-  const curaBrand = await prisma.brand.upsert({
-    where: { slug: "cura" },
-    update: {},
-    create: { name: "CURA", slug: "cura" },
-  });
+  // 6. Products Seeding Engine (80 items)
+  const allProductsSeed: ProductSeedInput[] = [
+    ...SNEAKERS_SEED,
+    ...SHIRTS_SEED,
+    ...WATCHES_SEED,
+    ...SPECTACLES_SEED,
+  ];
 
-  // 4. Sample Products with Cloudinary Product Images
-  const aj4Product = await prisma.product.upsert({
-    where: { slug: "air-jordan-4-retro" },
-    update: {},
-    create: {
-      categoryId: sneakersCat.id,
-      brandId: jordanBrand.id,
-      name: "Air Jordan 4 Retro",
-      slug: "air-jordan-4-retro",
-      sku: "JDN-AJ4-001",
-      shortDescription: "Iconic high-top black and white leather sneaker",
-      description: "Authentic Air Jordan 4 Retro built with premium nubuck and leather.",
-      basePrice: 210.0,
-      compareAtPrice: 250.0,
-      status: ProductStatus.ACTIVE,
-      isFeatured: true,
-      isNew: true,
-      images: {
-        create: [
-          {
-            imageUrl: CLOUDINARY_IMAGES.hero_preview,
-            altText: "Air Jordan 4 Retro High OG",
-            isPrimary: true,
-            displayOrder: 1,
-          },
-        ],
+  console.log(`📦 Seeding ${allProductsSeed.length} catalog items...`);
+
+  let seededProductsCount = 0;
+  let seededVariantsCount = 0;
+  let seededImagesCount = 0;
+
+  for (const prodSeed of allProductsSeed) {
+    const categoryId = categoryMap.get(prodSeed.categorySlug);
+    if (!categoryId) {
+      console.warn(`Category slug '${prodSeed.categorySlug}' not found! Skipping ${prodSeed.name}`);
+      continue;
+    }
+
+    const brandId = brandMap.get(prodSeed.brandSlug);
+
+    // Upsert Main Product
+    const dbProduct = await prisma.product.upsert({
+      where: { slug: prodSeed.slug },
+      update: {
+        name: prodSeed.name,
+        sku: prodSeed.sku,
+        categoryId: categoryId,
+        brandId: brandId || null,
+        shortDescription: prodSeed.shortDescription,
+        description: prodSeed.description,
+        basePrice: prodSeed.basePrice,
+        compareAtPrice: prodSeed.compareAtPrice || null,
+        status: ProductStatus.ACTIVE,
+        isFeatured: prodSeed.isFeatured || false,
+        isNew: prodSeed.isNew || false,
+        isActive: true,
       },
-    },
-  });
-
-  const shirtProduct = await prisma.product.upsert({
-    where: { slug: "cura-mens-linen-shirt" },
-    update: {},
-    create: {
-      categoryId: shirtsCat.id,
-      brandId: curaBrand.id,
-      name: "CURA Men's Linen Shirt",
-      slug: "cura-mens-linen-shirt",
-      sku: "CUR-SHIRT-001",
-      shortDescription: "Lightweight breathable classic linen shirt",
-      description: "Tailored signature linen shirt for warm seasons.",
-      basePrice: 75.0,
-      status: ProductStatus.ACTIVE,
-      isFeatured: true,
-      images: {
-        create: [
-          {
-            imageUrl: CLOUDINARY_IMAGES.shirt,
-            altText: "CURA Men's Linen Shirt",
-            isPrimary: true,
-            displayOrder: 1,
-          },
-        ],
+      create: {
+        name: prodSeed.name,
+        slug: prodSeed.slug,
+        sku: prodSeed.sku,
+        categoryId: categoryId,
+        brandId: brandId || null,
+        shortDescription: prodSeed.shortDescription,
+        description: prodSeed.description,
+        basePrice: prodSeed.basePrice,
+        compareAtPrice: prodSeed.compareAtPrice || null,
+        status: ProductStatus.ACTIVE,
+        isFeatured: prodSeed.isFeatured || false,
+        isNew: prodSeed.isNew || false,
+        isActive: true,
       },
-    },
-  });
+    });
 
-  console.log("✅ Seeding completed with Cloudinary URLs successfully!");
+    seededProductsCount++;
+
+    // Refresh Images
+    await prisma.productImage.deleteMany({ where: { productId: dbProduct.id } });
+    for (const img of prodSeed.images) {
+      await prisma.productImage.create({
+        data: {
+          productId: dbProduct.id,
+          imageUrl: img.url,
+          altText: img.alt,
+          isPrimary: img.isPrimary || false,
+          displayOrder: img.order || 1,
+        },
+      });
+      seededImagesCount++;
+    }
+
+    // Refresh Attributes
+    await prisma.productAttribute.deleteMany({ where: { productId: dbProduct.id } });
+    for (const attr of prodSeed.attributes) {
+      await prisma.productAttribute.create({
+        data: {
+          productId: dbProduct.id,
+          name: attr.name,
+          value: attr.value,
+        },
+      });
+    }
+
+    // Upsert Variants & Inventory
+    const categoryTypeUpper = prodSeed.categorySlug.toUpperCase();
+    for (const vSeed of prodSeed.variants) {
+      const sizeId = vSeed.sizeCode
+        ? sizeMap.get(`${categoryTypeUpper}:${vSeed.sizeCode}`) ||
+          sizeMap.get(`SNEAKERS:${vSeed.sizeCode}`) ||
+          sizeMap.get(`SHIRTS:${vSeed.sizeCode}`) ||
+          sizeMap.get(`SPECTACLES:${vSeed.sizeCode}`) ||
+          sizeMap.get(`WATCHES:${vSeed.sizeCode}`)
+        : undefined;
+
+      const colorId = vSeed.colorName ? colorMap.get(vSeed.colorName) : undefined;
+
+      const dbVariant = await prisma.productVariant.upsert({
+        where: { sku: vSeed.sku },
+        update: {
+          price: vSeed.price,
+          compareAtPrice: vSeed.compareAtPrice || null,
+          isDefault: vSeed.isDefault || false,
+          isActive: true,
+          sizeId: sizeId || null,
+          colorId: colorId || null,
+        },
+        create: {
+          productId: dbProduct.id,
+          sku: vSeed.sku,
+          price: vSeed.price,
+          compareAtPrice: vSeed.compareAtPrice || null,
+          isDefault: vSeed.isDefault || false,
+          isActive: true,
+          sizeId: sizeId || null,
+          colorId: colorId || null,
+        },
+      });
+
+      seededVariantsCount++;
+
+      // Upsert Inventory
+      const dbInventory = await prisma.inventory.upsert({
+        where: { variantId: dbVariant.id },
+        update: {
+          quantityAvailable: vSeed.inventory,
+          quantityReserved: 0,
+        },
+        create: {
+          variantId: dbVariant.id,
+          quantityAvailable: vSeed.inventory,
+          quantityReserved: 0,
+          reorderLevel: 5,
+          isTracked: true,
+        },
+      });
+
+      // Record Inventory Transaction if initial
+      const existingTx = await prisma.inventoryTransaction.findFirst({
+        where: { inventoryId: dbInventory.id, type: InventoryTransactionType.RECEIVE },
+      });
+
+      if (!existingTx) {
+        await prisma.inventoryTransaction.create({
+          data: {
+            inventoryId: dbInventory.id,
+            type: InventoryTransactionType.RECEIVE,
+            quantityChange: vSeed.inventory,
+            previousQuantity: 0,
+            newQuantity: vSeed.inventory,
+            reason: "INITIAL_STOCK_SEED",
+            createdBy: "SEED_SCRIPT",
+          },
+        });
+      }
+    }
+  }
+
+  console.log(`🎉 Database Seeding Complete!`);
+  console.log(`-----------------------------------`);
+  console.log(`Total Products Seeded : ${seededProductsCount}`);
+  console.log(`Total Variants Seeded : ${seededVariantsCount}`);
+  console.log(`Total Images Seeded   : ${seededImagesCount}`);
+  console.log(`-----------------------------------`);
 }
 
 main()
@@ -179,7 +272,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (e) => {
-    console.error(e);
+    console.error("❌ Seeding Error:", e);
     await prisma.$disconnect();
     process.exit(1);
   });

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SignInButton, SignUpButton, Show, UserButton } from "@clerk/nextjs";
+import { useStore } from "@/components/providers/store-provider";
 
 export interface MainHeaderProps {
   cartCount?: number;
@@ -21,11 +22,16 @@ export interface MainHeaderProps {
 }
 
 export const MainHeader: React.FC<MainHeaderProps> = ({
-  cartCount = 0,
-  wishlistCount = 0,
+  cartCount: cartCountProp,
+  wishlistCount: wishlistCountProp,
   destinations = {},
 }) => {
   const router = useRouter();
+  const store = useStore();
+
+  const cartCount = cartCountProp !== undefined ? cartCountProp : store.cartCount;
+  const wishlistCount = wishlistCountProp !== undefined ? wishlistCountProp : store.wishlistCount;
+
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
@@ -125,7 +131,7 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             </svg>
           </button>
 
-          {/* Wishlist */}
+          {/* Wishlist Icon with Dynamic Counter Badge */}
           <Link
             href={routes.wishlist}
             aria-label={`View Wishlist, ${wishlistCount} items`}
@@ -134,12 +140,14 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
-            <span className="absolute top-1 right-1 w-4 h-4 bg-[#232323] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              {wishlistCount}
-            </span>
+            {wishlistCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-[#232323] text-white text-[10px] font-bold rounded-full flex items-center justify-center transition-all animate-scale-in">
+                {wishlistCount}
+              </span>
+            )}
           </Link>
 
-          {/* Cart */}
+          {/* Cart Icon with Dynamic Counter Badge */}
           <Link
             href={routes.cart}
             aria-label={`View Shopping Cart, ${cartCount} items`}
@@ -148,9 +156,11 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
-            <span className="absolute top-1 right-1 w-4 h-4 bg-[#232323] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-              {cartCount}
-            </span>
+            {cartCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 bg-[#232323] text-white text-[10px] font-bold rounded-full flex items-center justify-center transition-all animate-scale-in">
+                {cartCount}
+              </span>
+            )}
           </Link>
 
           {/* Clerk Auth Controls */}
@@ -213,4 +223,3 @@ export const MainHeader: React.FC<MainHeaderProps> = ({
     </header>
   );
 };
-

@@ -1,72 +1,40 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { ProductItem } from "@/lib/category-data";
+import { useStore } from "@/components/providers/store-provider";
+import { handleImageError } from "@/components/ui/cura-image";
 
 interface CategoryProductGridProps {
   products: ProductItem[];
   categoryName: string;
-  onCartUpdated?: (count: number) => void;
-  onWishlistUpdated?: (count: number) => void;
+  conciergeTitle?: string;
+  conciergeDesc?: string;
 }
 
 export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
   products,
   categoryName,
-  onCartUpdated,
-  onWishlistUpdated,
+  conciergeTitle = "Footwear Atelier & Sizing Assurance",
+  conciergeDesc = "Not certain about instep width or sizing conversion? Schedule instant measurements with our digital atelier concierge.",
 }) => {
-  const [wishlistedIds, setWishlistedIds] = useState<string[]>(["snk-1", "snk-4"]);
+  const store = useStore();
   const [itemsPerPage, setItemsPerPage] = useState<number>(12);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [addingCartId, setAddingCartId] = useState<string | null>(null);
 
-  const handleToggleWishlist = async (id: string) => {
-    try {
-      const res = await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: id }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setWishlistedIds(data.wishlistedIds || []);
-        onWishlistUpdated?.(data.wishlistCount);
-      }
-    } catch {
-      setWishlistedIds((prev) =>
-        prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      );
-    }
-  };
-
-  const handleAddToCart = async (p: ProductItem) => {
-    setAddingCartId(p.id);
-    try {
-      const res = await fetch("/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId: p.id, quantity: 1 }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        onCartUpdated?.(data.cartCount);
-      }
-    } catch {
-      // Fallback
-    } finally {
-      setTimeout(() => setAddingCartId(null), 400);
-    }
-  };
+  const totalPages = Math.ceil(products.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedProducts = products.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-8">
       {/* Product Cards Grid - 4 Columns Desktop */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        {products.map((p) => {
-          const isWishlisted = wishlistedIds.includes(p.id);
+        {paginatedProducts.map((p) => {
+          const isWishlisted = store.isInWishlist(p.id);
+          const isAddedToCart = store.isInCart(p.id);
+
           return (
             <div
               key={p.id}
@@ -96,7 +64,7 @@ export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
                 {/* Wishlist Toggle Heart Button */}
                 <button
                   type="button"
-                  onClick={() => handleToggleWishlist(p.id)}
+                  onClick={() => store.toggleWishlist(p.id)}
                   aria-label={
                     isWishlisted ? `Remove ${p.title} from wishlist` : `Add ${p.title} to wishlist`
                   }
@@ -115,11 +83,14 @@ export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
                 </button>
 
                 {/* Product Image */}
-                <img
-                  src={p.imageUrl}
-                  alt={p.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
+                <Link href={`/product/${p.id}`} className="block w-full h-full">
+                  <img
+                    src={p.imageUrl}
+                    alt={p.title}
+                    onError={handleImageError}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                  />
+                </Link>
               </div>
 
               {/* Product Info */}
@@ -131,9 +102,11 @@ export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
                   <span className="text-[#676767]">{p.subCategory}</span>
                 </div>
 
-                <h4 className="text-[15px] font-bold text-[#232323] leading-snug line-clamp-1 group-hover:underline">
-                  {p.title}
-                </h4>
+                <Link href={`/product/${p.id}`} className="block">
+                  <h4 className="text-[15px] font-bold text-[#232323] leading-snug line-clamp-1 group-hover:underline cursor-pointer">
+                    {p.title}
+                  </h4>
+                </Link>
 
                 <div className="flex items-center gap-1.5 text-[12px] text-[#676767]">
                   <span className="text-amber-500 font-bold">★ {p.rating}</span>
@@ -154,12 +127,17 @@ export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => handleAddToCart(p)}
-                  disabled={addingCartId === p.id}
-                  className="h-[36px] px-3.5 bg-[#232323] hover:bg-[#454545] text-white rounded-[8px] text-[12px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shadow-xs cursor-pointer disabled:opacity-50"
+                  onClick={() => store.addToCart(p.id)}
+                  disabled={isAddedToCart}
+                  aria-label={isAddedToCart ? `${p.title} is in cart` : `Add ${p.title} to cart`}
+                  className={`h-[36px] px-3.5 rounded-[8px] text-[12px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 shadow-xs ${
+                    isAddedToCart
+                      ? "bg-[#43A047] text-white cursor-not-allowed opacity-90"
+                      : "bg-[#232323] hover:bg-[#454545] text-white cursor-pointer"
+                  }`}
                 >
-                  {addingCartId === p.id ? (
-                    <span>Added!</span>
+                  {isAddedToCart ? (
+                    <span>Added ✓</span>
                   ) : (
                     <>
                       <span>+</span>
@@ -173,93 +151,95 @@ export const CategoryProductGrid: React.FC<CategoryProductGridProps> = ({
         })}
       </div>
 
-      {/* Sizing Assurance Banner */}
-      <div className="bg-[#FFF8F3] border border-[#F5D8C3] rounded-[16px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xs">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#FFE8D6] text-[#D84315] flex items-center justify-center shrink-0 font-bold text-lg">
+      {/* Sizing & Atelier Concierge Banner */}
+      <div className="bg-white border border-[#E0E0E0] rounded-[16px] p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xs">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center shrink-0 text-amber-700 text-xl">
             🛡
           </div>
           <div className="space-y-1">
-            <h4 className="font-heebo text-[16px] font-bold text-[#232323] uppercase tracking-wide">
-              {categoryName} Atelier & Sizing Assurance
-            </h4>
-            <p className="text-[13px] text-[#676767] max-w-2xl leading-relaxed">
-              Not certain about instep width or Jordan vs. New Balance fit conversion? Schedule instant
-              measurements with our digital atelier concierge.
+            <h3 className="font-heebo text-[18px] font-bold text-[#232323]">
+              {conciergeTitle}
+            </h3>
+            <p className="text-[13px] text-[#676767] leading-relaxed max-w-2xl">
+              {conciergeDesc}
             </p>
           </div>
         </div>
 
         <button
           type="button"
-          className="h-[44px] px-6 bg-[#121212] hover:bg-[#333333] text-white font-bold text-[13px] uppercase tracking-wider rounded-[10px] shrink-0 transition-colors shadow-sm cursor-pointer"
+          className="h-[44px] px-6 bg-[#232323] hover:bg-[#454545] text-white rounded-[10px] text-[13px] font-bold uppercase tracking-wider transition-colors shrink-0 shadow-xs cursor-pointer"
         >
           Consult Fit Guide
         </button>
       </div>
 
-      {/* Pagination Footer Controls */}
-      <div className="pt-4 border-t border-[#E0E0E0] flex flex-col sm:flex-row items-center justify-between gap-4 text-[13px] text-[#676767]">
-        {/* Items per page selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-[12px] font-medium text-[#A0A0A0]">Items per page:</span>
-          {[12, 24, 48].map((count) => (
+      {/* Pagination & Footer Controls */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 text-[13px] text-[#676767]">
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-[11px] text-[#A0A0A0] uppercase">
+            Items per page:
+          </span>
+          {[12, 24, 48].map((size) => (
             <button
-              key={count}
+              key={size}
               type="button"
-              onClick={() => setItemsPerPage(count)}
-              className={`w-7 h-7 rounded-[6px] text-[12px] font-bold transition-all cursor-pointer ${
-                itemsPerPage === count
+              onClick={() => {
+                setItemsPerPage(size);
+                setCurrentPage(1);
+              }}
+              className={`px-2.5 py-1 rounded-[6px] font-bold font-mono text-[12px] transition-colors ${
+                itemsPerPage === size
                   ? "bg-[#232323] text-white"
-                  : "bg-white text-[#676767] border border-[#E0E0E0] hover:border-[#232323]"
+                  : "bg-white border border-[#E0E0E0] text-[#676767] hover:border-[#232323]"
               }`}
             >
-              {count}
+              {size}
             </button>
           ))}
         </div>
 
-        {/* Page Buttons */}
-        <div className="flex items-center gap-1.5">
+        {/* Page Selector Buttons */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-label="Previous page"
+            onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            className="w-8 h-8 rounded-[6px] border border-[#E0E0E0] bg-white flex items-center justify-center text-[#232323] disabled:opacity-40 cursor-pointer"
+            aria-label="Previous page"
+            className="w-9 h-9 rounded-[8px] bg-white border border-[#E0E0E0] flex items-center justify-center text-[#232323] disabled:opacity-30 hover:border-[#232323] cursor-pointer"
           >
             &lt;
           </button>
-          {[1, 2, 3].map((pNum) => (
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
-              key={pNum}
+              key={page}
               type="button"
-              aria-label={`Page ${pNum}`}
-              aria-current={currentPage === pNum ? "page" : undefined}
-              onClick={() => setCurrentPage(pNum)}
-              className={`w-8 h-8 rounded-[6px] font-bold text-[13px] transition-all cursor-pointer ${
-                currentPage === pNum
-                  ? "bg-[#232323] text-white"
+              onClick={() => setCurrentPage(page)}
+              className={`w-9 h-9 rounded-[8px] font-bold font-mono text-[13px] transition-all ${
+                currentPage === page
+                  ? "bg-[#232323] text-white shadow-xs"
                   : "bg-white border border-[#E0E0E0] text-[#232323] hover:border-[#232323]"
               }`}
             >
-              {pNum}
+              {page}
             </button>
           ))}
+
           <button
             type="button"
+            onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
             aria-label="Next page"
-            disabled={currentPage === 3}
-            onClick={() => setCurrentPage((p) => Math.min(3, p + 1))}
-            className="w-8 h-8 rounded-[6px] border border-[#E0E0E0] bg-white flex items-center justify-center text-[#232323] disabled:opacity-40 cursor-pointer"
+            className="w-9 h-9 rounded-[8px] bg-white border border-[#E0E0E0] flex items-center justify-center text-[#232323] disabled:opacity-30 hover:border-[#232323] cursor-pointer"
           >
             &gt;
           </button>
         </div>
 
-        {/* Page Info */}
-        <div className="text-[12px] font-mono text-[#A0A0A0]">
-          Page {currentPage} of 3 (18 total products)
+        <div className="font-mono text-[12px] text-[#A0A0A0]">
+          Page {currentPage} of {totalPages} ({products.length} total products)
         </div>
       </div>
     </div>

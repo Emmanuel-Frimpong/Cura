@@ -73,3 +73,94 @@ export async function fetchCategoryProducts(categorySlug: string): Promise<Categ
     return fallback;
   }
 }
+
+export interface BestSellerProduct {
+  id: string;
+  category: string;
+  type: string;
+  title: string;
+  variant: string;
+  price: string;
+  rating: string;
+  saleBadge?: string;
+  image: string;
+}
+
+export async function fetchBestSellerProducts(): Promise<BestSellerProduct[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      where: { isActive: true },
+      include: {
+        products: {
+          where: { isActive: true },
+          take: 4,
+          include: {
+            brand: true,
+            category: true,
+            attributes: true,
+            images: true,
+          },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+
+    const allDbProducts = categories.flatMap((cat) => cat.products);
+
+    if (allDbProducts.length === 0) return [];
+
+    return allDbProducts.map((p, idx) => {
+      const primaryImg = p.images.find((img) => img.isPrimary)?.imageUrl || p.images[0]?.imageUrl;
+      const badgeAttr = p.attributes.find((a) => a.name === "badge")?.value;
+      const subAttr = p.attributes.find((a) => a.name === "subCategory")?.value;
+
+      let categoryType = "Sneakers";
+      const catSlug = p.category?.slug?.toLowerCase() || "";
+      const catName = p.category?.name?.toLowerCase() || "";
+
+      if (catSlug.includes("shirt") || catName.includes("shirt") || catName.includes("apparel")) {
+        categoryType = "Shirts";
+      } else if (catSlug.includes("watch") || catName.includes("watch") || catName.includes("horology")) {
+        categoryType = "Watches";
+      } else if (
+        catSlug.includes("spectacle") ||
+        catSlug.includes("eyewear") ||
+        catName.includes("spectacle") ||
+        catName.includes("eyewear") ||
+        catName.includes("optical")
+      ) {
+        categoryType = "Eyewear";
+      } else {
+        categoryType = "Sneakers";
+      }
+
+      return {
+        id: p.id,
+        category: p.brand?.name?.toUpperCase() || "CURA",
+        type: categoryType,
+        title: p.name,
+        variant: subAttr || "Signature Edition",
+        price: `GH₵ ${Number(p.basePrice).toFixed(2)}`,
+        rating: `4.${8 - (idx % 3)} (${120 + idx * 15})`,
+        saleBadge: badgeAttr || (p.compareAtPrice ? "SALE" : undefined),
+        image: primaryImg || "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
+      };
+    });
+  } catch (error) {
+    console.warn("Error fetching best sellers from database:", error);
+    return [];
+  }
+}
+
+export async function fetchHomepageBrands(): Promise<string[]> {
+  try {
+    const brands = await prisma.brand.findMany({
+      where: { isActive: true },
+      take: 8,
+      select: { name: true },
+    });
+    return brands.map((b) => b.name.toUpperCase());
+  } catch {
+    return ["NIKE", "JORDAN", "NEW BALANCE", "SALOMON", "TIMECRAFT", "MOSCOT"];
+  }
+}

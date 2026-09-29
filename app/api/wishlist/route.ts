@@ -1,41 +1,53 @@
 import { NextResponse } from "next/server";
 
-let globalWishlistIds: string[] = ["snk-1", "snk-4"];
+let serverWishlistIds: string[] = [];
 
 export async function GET() {
   return NextResponse.json({
-    wishlistCount: globalWishlistIds.length,
-    wishlistedIds: globalWishlistIds,
+    wishlistCount: serverWishlistIds.length,
+    wishlistedIds: serverWishlistIds,
   });
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { productId } = body;
+    const { productId, action = "toggle" } = body;
 
     if (!productId || typeof productId !== "string") {
       return NextResponse.json({ error: "Missing productId" }, { status: 400 });
     }
 
-    let isWishlisted = false;
-    if (globalWishlistIds.includes(productId)) {
-      globalWishlistIds = globalWishlistIds.filter((id) => id !== productId);
-      isWishlisted = false;
-    } else {
-      globalWishlistIds.push(productId);
+    const isCurrentlyWishlisted = serverWishlistIds.includes(productId);
+    let isWishlisted = isCurrentlyWishlisted;
+
+    if (action === "toggle") {
+      if (isCurrentlyWishlisted) {
+        serverWishlistIds = serverWishlistIds.filter((id) => id !== productId);
+        isWishlisted = false;
+      } else {
+        serverWishlistIds.push(productId);
+        isWishlisted = true;
+      }
+    } else if (action === "add") {
+      if (!isCurrentlyWishlisted) {
+        serverWishlistIds.push(productId);
+      }
       isWishlisted = true;
+    } else if (action === "remove") {
+      serverWishlistIds = serverWishlistIds.filter((id) => id !== productId);
+      isWishlisted = false;
     }
 
     return NextResponse.json({
       success: true,
       isWishlisted,
-      wishlistCount: globalWishlistIds.length,
-      wishlistedIds: globalWishlistIds,
+      wishlistCount: serverWishlistIds.length,
+      wishlistedIds: serverWishlistIds,
     });
   } catch {
     return NextResponse.json(
-      { error: "Failed to toggle wishlist." },
+      { error: "Failed to update wishlist." },
       { status: 500 }
     );
   }

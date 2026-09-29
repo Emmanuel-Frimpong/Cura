@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "./button";
+import { handleImageError } from "./cura-image";
 
 export interface ProductCardProps {
   category?: string;
@@ -34,6 +35,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           <img
             src={imageUrl}
             alt={title}
+            onError={handleImageError}
             className="w-full h-full object-cover"
           />
         ) : (

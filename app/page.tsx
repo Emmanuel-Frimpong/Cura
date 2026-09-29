@@ -13,20 +13,26 @@ import { TrustSignals } from "@/components/home/trust-signals";
 import { CommunityReviews } from "@/components/home/community-reviews";
 import { Newsletter } from "@/components/home/newsletter";
 import { Footer } from "@/components/layout/footer";
+import { fetchBestSellerProducts, fetchHomepageBrands } from "@/lib/services/products";
 
-/** Renders the CURA storefront homepage. */
-export default function HomePage() {
+/** Renders the CURA storefront homepage fetching live database data. */
+export default async function HomePage() {
+  const [bestSellers, brands] = await Promise.all([
+    fetchBestSellerProducts(),
+    fetchHomepageBrands(),
+  ]);
+
   return (
     <div className="min-h-screen bg-[#F4F4F4] text-[#232323] flex flex-col font-sans">
       <TopBar />
-      <MainHeader cartCount={2} wishlistCount={4} />
+      <MainHeader />
       <CategoryNav />
       <main className="flex-1">
         <HeroSection />
-        <BrandsBar />
+        <BrandsBar brands={brands} />
         <StyleSelector />
         <CuratedEssentials />
-        <BestSellers />
+        <BestSellers initialProducts={bestSellers} />
         <PromoBanner />
         <CollectionsGrid />
         <TrustSignals />

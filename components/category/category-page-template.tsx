@@ -3,6 +3,10 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { CategoryData } from "@/lib/category-data";
+import { TopBar } from "@/components/layout/top-bar";
+import { MainHeader } from "@/components/layout/main-header";
+import { CategoryNav } from "@/components/layout/category-nav";
+import { Footer } from "@/components/layout/footer";
 import { CategoryHero } from "./category-hero";
 import { CategoryToolbar } from "./category-toolbar";
 import { CategoryFilterSidebar } from "./category-filter-sidebar";
@@ -34,7 +38,12 @@ export const CategoryPageTemplate: React.FC<CategoryPageTemplateProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7] text-[#1E1E1E]">
+    <div className="min-h-screen bg-[#F7F7F7] text-[#1E1E1E] flex flex-col font-sans">
+      {/* 3-Tier Header Section: TopBar + MainHeader + CategoryNav */}
+      <TopBar />
+      <MainHeader />
+      <CategoryNav />
+
       {/* Top Breadcrumb Navigation */}
       <div className="bg-[#EFEFEF] border-b border-[#E0E0E0] py-2.5 px-4 lg:px-8 text-[12px] font-mono text-[#666] flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -57,7 +66,7 @@ export const CategoryPageTemplate: React.FC<CategoryPageTemplateProps> = ({
         </div>
       </div>
 
-      <main className="max-w-[1440px] mx-auto px-4 lg:px-8 py-6 space-y-6">
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
         {/* Hero Card Banner */}
         <CategoryHero category={categoryData} />
 
@@ -94,6 +103,8 @@ export const CategoryPageTemplate: React.FC<CategoryPageTemplateProps> = ({
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 };

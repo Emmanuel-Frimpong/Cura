@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Heebo, Oswald, Inter } from "next/font/google";
+import { StoreProvider } from "@/components/providers/store-provider";
 import "./globals.css";
 
 const heebo = Heebo({
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
   description: "A modern design language for CURA, your destination for curated essentials.",
 };
 
-/** Provides the shared document shell, fonts, and Clerk context for every route. */
+/** Provides the shared document shell, fonts, Clerk context, and global Store context for every route. */
 export default function RootLayout({
   children,
 }: {
@@ -39,7 +40,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-[#F4F4F4] text-[#232323]">
         <ClerkProvider>
-          {children}
+          <StoreProvider>{children}</StoreProvider>
         </ClerkProvider>
       </body>
     </html>

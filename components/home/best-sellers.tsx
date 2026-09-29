@@ -2,100 +2,84 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { ProductCard } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BestSellerProduct } from "@/lib/services/products";
+import { useStore } from "@/components/providers/store-provider";
+import { handleImageError } from "@/components/ui/cura-image";
 
-export const BestSellers: React.FC = () => {
+export interface BestSellersProps {
+  initialProducts?: BestSellerProduct[];
+}
+
+export const BestSellers: React.FC<BestSellersProps> = ({ initialProducts }) => {
+  const store = useStore();
   const [activeTab, setActiveTab] = useState("All Products");
-  const [wishlistedIds, setWishlistedIds] = useState<number[]>([1, 3]);
 
   const tabs = ["All Products", "Sneakers", "Shirts", "Watches", "Eyewear"];
 
-  const products = [
-    {
-      id: 1,
-      category: "NIKE",
-      type: "Sneakers",
-      title: "Air Force 1 '07",
-      variant: "Men's Shoes",
-      price: "$115.00",
-      rating: "4.9 (128)",
-      saleBadge: "-15%",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
-    },
-    {
-      id: 2,
-      category: "ADIDAS",
-      type: "Sneakers",
-      title: "Originals Superstar",
-      variant: "Unisex Shoes",
-      price: "$100.00",
-      rating: "4.8 (94)",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
-    },
-    {
-      id: 3,
-      category: "JORDAN",
-      type: "Sneakers",
-      title: "Air Jordan 4 Retro",
-      variant: "Men's Footwear",
-      price: "$210.00",
-      rating: "5.0 (312)",
-      saleBadge: "40% OFF",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
-    },
-    {
-      id: 4,
-      category: "NEW BALANCE",
-      type: "Sneakers",
-      title: "New Balance 550",
-      variant: "Athletic Running",
-      price: "$120.00",
-      rating: "4.7 (85)",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
-    },
-    {
-      id: 5,
-      category: "CURA",
-      type: "Shirts",
-      title: "Men's Linen Shirt",
-      variant: "White/Rustic Classic",
-      price: "$75.00",
-      rating: "4.9 (62)",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
-    },
-    {
-      id: 6,
-      category: "HOROLOGY",
-      type: "Watches",
-      title: "Precision Automatic Watch",
-      variant: "Silver/Steel",
-      price: "$350.00",
-      rating: "4.9 (48)",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
-    },
-    {
-      id: 7,
-      category: "OPTICS",
-      type: "Eyewear",
-      title: "Acetate Solar Frames",
-      variant: "Classic Tortoise",
-      price: "$145.00",
-      rating: "4.8 (39)",
-      image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
-    },
-  ];
+  const products: BestSellerProduct[] =
+    initialProducts && initialProducts.length > 0
+      ? initialProducts
+      : [
+          {
+            id: "snk-1",
+            category: "NIKE",
+            type: "Sneakers",
+            title: "Air Jordan 1 Retro Hi OG Heritage",
+            variant: "High-Top",
+            price: "GH₵ 185.00",
+            rating: "4.9 (128)",
+            saleBadge: "SALE -15%",
+            image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939428/cura/media/dbkcqaysrqguhlyyc4an.jpg",
+          },
+          {
+            id: "snk-2",
+            category: "NEW BALANCE",
+            type: "Sneakers",
+            title: "990v2 Heritage Cream & Navy",
+            variant: "Running / Casual",
+            price: "GH₵ 195.00",
+            rating: "4.8 (94)",
+            saleBadge: "ATELIER PICK",
+            image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939423/cura/media/ysfpddxxuy8broxrlnhu.jpg",
+          },
+          {
+            id: "sht-1",
+            category: "CURA",
+            type: "Shirts",
+            title: "Tailored French Linen Shirt Raw",
+            variant: "French Linen",
+            price: "GH₵ 110.00",
+            rating: "4.9 (62)",
+            saleBadge: "SALE -15%",
+            image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939426/cura/media/vl8irhjorvfyn4o03ed5.jpg",
+          },
+          {
+            id: "wat-1",
+            category: "TIMECRAFT",
+            type: "Watches",
+            title: "Chronograph Monolith Steel Automatic",
+            variant: "Automatic",
+            price: "GH₵ 420.00",
+            rating: "4.9 (48)",
+            image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939430/cura/media/fhsosrlqavdxqwy0gppx.jpg",
+          },
+          {
+            id: "eyw-1",
+            category: "VISIONARY",
+            type: "Eyewear",
+            title: "Acetate Solar Frames Polarized",
+            variant: "Polarized",
+            price: "GH₵ 145.00",
+            rating: "4.8 (39)",
+            image: "https://res.cloudinary.com/ovwiwt64/image/upload/v1789939421/cura/media/ttmav1ptoigprqbeprlv.jpg",
+          },
+        ];
 
   const filteredProducts =
     activeTab === "All Products"
       ? products
       : products.filter((p) => p.type === activeTab);
-
-  const toggleWishlist = (id: number) => {
-    setWishlistedIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
 
   return (
     <section className="py-16 bg-[#F8F8F8] border-b border-[#E0E0E0]">
@@ -128,25 +112,85 @@ export const BestSellers: React.FC = () => {
           </div>
         </div>
 
-        {/* Product Cards Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
-          {filteredProducts.map((p) => (
-            <div key={p.id} className="relative">
-              {p.saleBadge && (
-                <div className="absolute top-3 left-3 z-10 bg-[#D84315] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-[4px] uppercase">
-                  {p.saleBadge}
+        {/* Product Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-5">
+          {filteredProducts.map((p) => {
+            const isWishlisted = store.isInWishlist(p.id);
+            const isAddedToCart = store.isInCart(p.id);
+
+            return (
+              <div
+                key={p.id}
+                className="bg-white rounded-[16px] border border-[#E0E0E0] p-4 flex flex-col justify-between hover:border-[#232323] hover:shadow-lg transition-all group relative"
+              >
+                {/* Image Container with Wishlist Button */}
+                <div className="relative w-full h-[190px] bg-[#F8F8F8] rounded-[12px] overflow-hidden mb-3.5 flex items-center justify-center p-3">
+                  {p.saleBadge && (
+                    <div className="absolute top-3 left-3 z-10 bg-[#D84315] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-[4px] uppercase tracking-wider">
+                      {p.saleBadge}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => store.toggleWishlist(p.id)}
+                    aria-label={isWishlisted ? `Remove ${p.title} from wishlist` : `Add ${p.title} to wishlist`}
+                    aria-pressed={isWishlisted}
+                    className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur-xs flex items-center justify-center text-[#232323] hover:scale-110 transition-transform border border-[#E0E0E0] shadow-xs cursor-pointer"
+                  >
+                    <svg
+                      className={`w-4 h-4 ${
+                        isWishlisted ? "fill-[#232323]" : "fill-none stroke-current stroke-2"
+                      }`}
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  </button>
+
+                  <Link href={`/product/${p.id}`} className="block w-full h-full">
+                    <img
+                      src={p.image}
+                      alt={p.title}
+                      onError={handleImageError}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer"
+                    />
+                  </Link>
                 </div>
-              )}
-              <ProductCard
-                category={p.category}
-                title={p.title}
-                price={p.price}
-                imageUrl={p.image}
-                isWishlisted={wishlistedIds.includes(p.id)}
-                onWishlistToggle={() => toggleWishlist(p.id)}
-              />
-            </div>
-          ))}
+
+                <div className="space-y-1 mb-4">
+                  <span className="text-[11px] font-mono font-bold text-[#A0A0A0] uppercase tracking-wider">
+                    {p.category}
+                  </span>
+                  <Link href={`/product/${p.id}`} className="block">
+                    <h4 className="text-[15px] font-bold text-[#232323] leading-snug line-clamp-1 group-hover:underline cursor-pointer">
+                      {p.title}
+                    </h4>
+                  </Link>
+                  <p className="text-[15px] font-extrabold text-[#232323]">{p.price}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => store.addToCart(p.id)}
+                  disabled={isAddedToCart}
+                  aria-label={isAddedToCart ? `${p.title} is in cart` : `Add ${p.title} to cart`}
+                  className={`w-full h-[40px] rounded-[8px] text-[13px] font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-xs ${
+                    isAddedToCart
+                      ? "bg-[#43A047] text-white cursor-not-allowed opacity-90"
+                      : "bg-[#232323] hover:bg-[#454545] text-white cursor-pointer"
+                  }`}
+                >
+                  {isAddedToCart ? (
+                    <span>Added ✓</span>
+                  ) : (
+                    <span>Add to Cart</span>
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
 
         {/* Bottom CTA */}
